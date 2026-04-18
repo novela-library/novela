@@ -561,3 +561,218 @@ body {
 /* Text selection color */
 ::selection { background: rgba(167,139,250,0.35); color: inherit; }
 ::-moz-selection { background: rgba(167,139,250,0.35); color: inherit; }
+
+/* ===== NOTE MODAL ===== */
+#note-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.note-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+}
+
+.note-modal-box {
+  position: relative;
+  background: var(--bg2);
+  border: 1px solid rgba(167,139,250,0.3);
+  border-radius: 20px;
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+  animation: modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.85) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.note-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.note-modal-close {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  background: var(--bg3);
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.note-modal-close:hover { background: #ef4444; color: #fff; }
+
+.note-modal-quote {
+  font-size: 0.85rem;
+  color: var(--text2);
+  font-style: italic;
+  background: var(--bg3);
+  border-left: 3px solid var(--accent);
+  padding: 10px 14px;
+  border-radius: 0 10px 10px 0;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.note-modal-input {
+  width: 100%;
+  background: var(--bg3);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  padding: 14px;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+  line-height: 1.6;
+}
+.note-modal-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(167,139,250,0.15);
+}
+.note-modal-input::placeholder { color: var(--text2); opacity: 0.6; }
+
+.note-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.note-modal-cancel {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.note-modal-cancel:hover { border-color: var(--accent); color: var(--text); }
+
+.note-modal-save {
+  flex: 2;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+.note-modal-save:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.note-modal-save:active { transform: scale(0.97); }
+
+/* ===== ANNOTATION CONTEXT MENU ===== */
+.ann-ctx-menu {
+  background: var(--bg2);
+  border: 1px solid rgba(167,139,250,0.3);
+  border-radius: 14px;
+  padding: 14px;
+  width: 260px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  animation: fadeIn 0.15s ease;
+}
+
+.ann-ctx-text {
+  font-size: 0.82rem;
+  color: var(--text2);
+  font-style: italic;
+  margin-bottom: 10px;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+}
+
+.ann-ctx-note {
+  font-size: 0.83rem;
+  color: var(--text);
+  background: rgba(167,139,250,0.12);
+  border-left: 3px solid var(--accent);
+  padding: 8px 10px;
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.ann-ctx-colors {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  justify-content: center;
+}
+
+.ann-color-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ann-color-btn:hover {
+  transform: scale(1.2);
+  border-color: rgba(255,255,255,0.5);
+}
+
+.ann-ctx-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ann-ctx-btn {
+  flex: 1;
+  padding: 9px 8px;
+  border-radius: 9px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.ann-ctx-edit {
+  background: rgba(167,139,250,0.15);
+  color: var(--accent);
+}
+.ann-ctx-edit:hover { background: rgba(167,139,250,0.3); }
+
+.ann-ctx-delete {
+  background: rgba(239,68,68,0.15);
+  color: #f87171;
+}
+.ann-ctx-delete:hover { background: rgba(239,68,68,0.3); }
+
+/* ===== ANNOTATION PANEL — colored items ===== */
+.annotation-item[data-color="yellow"] { border-left: 4px solid #fbbf24; }
+.annotation-item[data-color="green"]  { border-left: 4px solid #4ade80; }
+.annotation-item[data-color="pink"]   { border-left: 4px solid #f472b6; }
+.annotation-item[data-color="blue"]   { border-left: 4px solid #60a5fa; }
+
+.annotation-item-text { border-radius: 6px; padding: 6px 8px; }
+.annotation-item[data-color="yellow"] .annotation-item-text { background: rgba(251,191,36,0.12); }
+.annotation-item[data-color="green"]  .annotation-item-text { background: rgba(74,222,128,0.12); }
+.annotation-item[data-color="pink"]   .annotation-item-text { background: rgba(244,114,182,0.12); }
+.annotation-item[data-color="blue"]   .annotation-item-text { background: rgba(96,165,250,0.12); }

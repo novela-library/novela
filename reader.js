@@ -1430,84 +1430,142 @@ function highlightText(color) {
 // Add note to selection
 function addNote() {
   if (!selectedText) return;
-  
-  const note = prompt('Ajouter une note :', '');
-  if (!note) return;
-  
-  const chapterKey = 'ch' + currentChapter;
-  if (!annotations[chapterKey]) annotations[chapterKey] = {};
-  
-  const textEl = document.getElementById('book-text');
-  const fullText = textEl.textContent;
-  
-  let start = -1;
-  if (selectedRange) {
-    const preRange = document.createRange();
-    preRange.selectNodeContents(textEl);
-    preRange.setEnd(selectedRange.startContainer, selectedRange.startOffset);
-    start = preRange.toString().length;
-  } else {
-    start = fullText.indexOf(selectedText);
-  }
-  
-  if (start === -1) return;
-  
-  const id = 'ann_' + Date.now();
-  annotations[chapterKey][id] = {
-    text: selectedText,
-    color: 'yellow',
-    note,
-    start,
-    end: start + selectedText.length,
-    date: Date.now()
-  };
-  
-  saveAnnotations();
   hideHighlightMenu();
-  if (selectedRange) window.getSelection().removeAllRanges();
-  selectedText = '';
-  selectedRange = null;
-  renderChapter();
-  showToast('📝 Note ajoutée !');
+  showNoteModal(selectedText, null, (note) => {
+    if (!note) return;
+    const chapterKey = 'ch' + currentChapter;
+    if (!annotations[chapterKey]) annotations[chapterKey] = {};
+    const textEl = document.getElementById('book-text');
+    const fullText = textEl.textContent;
+    let start = -1;
+    if (selectedRange) {
+      const preRange = document.createRange();
+      preRange.selectNodeContents(textEl);
+      preRange.setEnd(selectedRange.startContainer, selectedRange.startOffset);
+      start = preRange.toString().length;
+    } else {
+      start = fullText.indexOf(selectedText);
+    }
+    if (start === -1) return;
+    const id = 'ann_' + Date.now();
+    annotations[chapterKey][id] = {
+      text: selectedText, color: 'yellow', note,
+      start, end: start + selectedText.length, date: Date.now()
+    };
+    saveAnnotations();
+    if (selectedRange) window.getSelection().removeAllRanges();
+    selectedText = ''; selectedRange = null;
+    renderChapter();
+    showToast('📝 Note ajoutée !');
+  });
+}
+
+// ===== CUSTOM NOTE MODAL =====
+function showNoteModal(text, existingNote, callback) {
+  // Remove any existing modal
+  document.getElementById('note-modal')?.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'note-modal';
+  modal.innerHTML = `
+    <div class="note-modal-backdrop"></div>
+    <div class="note-modal-box">
+      <div class="note-modal-header">
+        <span>📝 Ajouter une note</span>
+        <button class="note-modal-close" onclick="document.getElementById('note-modal').remove()">✕</button>
+      </div>
+      <div class="note-modal-quote">"${text.substring(0, 80)}${text.length > 80 ? '...' : ''}"</div>
+      <textarea class="note-modal-input" id="note-modal-input" placeholder="Écris ta note ici..." rows="4">${existingNote || ''}</textarea>
+      <div class="note-modal-actions">
+        <button class="note-modal-cancel" onclick="document.getElementById('note-modal').remove()">Annuler</button>
+        <button class="note-modal-save" onclick="
+          const val = document.getElementById('note-modal-input').value.trim();
+          document.getElementById('note-modal').remove();
+          window._noteModalCb(val);
+        ">💾 Sauvegarder</button>
+      </div>
+    </div>
+  `;
+  window._noteModalCb = callback;
+  document.body.appendChild(modal);
+
+  // Focus textarea
+  setTimeout(() => document.getElementById('note-modal-input')?.focus(), 100);
+
+  // Close on backdrop click
+  modal.querySelector('.note-modal-backdrop').addEventListener('click', () => {
+    modal.remove();
+  });
 }
 
 // Show annotation menu (edit/delete)
 function showAnnotationMenu(id) {
   const chapterKey = 'ch' + currentChapter;
-  const ann = annotations[chapterKey][id];
+  const ann = annotations[chapterKey]?.[id];
   if (!ann) return;
-  
+
+  // Remove existing menus
+  document.querySelectorAll('.annotation-menu').forEach(m => m.remove());
+
+  const colorMap = { yellow: '#fbbf24', green: '#4ade80', pink: '#f472b6', blue: '#60a5fa' };
+  const colorDot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${colorMap[ann.color]||'#fbbf24'};margin-right:6px"></span>`;
+
   const menu = document.createElement('div');
   menu.className = 'annotation-menu';
   menu.innerHTML = `
-    <div style="padding:12px;background:var(--bg2);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.5);max-width:300px">
-      <div style="font-size:.85rem;color:var(--text2);margin-bottom:8px">"${ann.text.substring(0, 60)}${ann.text.length > 60 ? '...' : ''}"</div>
-      ${ann.note ? `<div style="font-size:.9rem;color:var(--text);margin-bottom:12px;padding:8px;background:var(--bg3);border-radius:8px">📝 ${ann.note}</div>` : ''}
-      <div style="display:flex;gap:8px">
-        <button onclick="editAnnotationNote('${id}')" style="flex:1;padding:8px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.82rem">✏️ Modifier</button>
-        <button onclick="deleteAnnotation('${id}')" style="flex:1;padding:8px;background:var(--error);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.82rem">🗑️ Supprimer</button>
+    <div class="ann-ctx-menu">
+      <div class="ann-ctx-text">${colorDot}"${ann.text.substring(0, 55)}${ann.text.length > 55 ? '...' : ''}"</div>
+      ${ann.note ? `<div class="ann-ctx-note">📝 ${ann.note}</div>` : ''}
+      <div class="ann-ctx-colors">
+        <button onclick="changeHighlightColor('${id}','yellow')" class="ann-color-btn" style="background:#fbbf24" title="Jaune"></button>
+        <button onclick="changeHighlightColor('${id}','green')" class="ann-color-btn" style="background:#4ade80" title="Vert"></button>
+        <button onclick="changeHighlightColor('${id}','pink')" class="ann-color-btn" style="background:#f472b6" title="Rose"></button>
+        <button onclick="changeHighlightColor('${id}','blue')" class="ann-color-btn" style="background:#60a5fa" title="Bleu"></button>
+      </div>
+      <div class="ann-ctx-actions">
+        <button onclick="editAnnotationNote('${id}')" class="ann-ctx-btn ann-ctx-edit">✏️ Note</button>
+        <button onclick="deleteAnnotation('${id}')" class="ann-ctx-btn ann-ctx-delete">🗑️ Supprimer</button>
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(menu);
-  
+
   // Position near the highlight
   const highlight = document.querySelector(`[data-id="${id}"]`);
   if (highlight) {
     const rect = highlight.getBoundingClientRect();
-    menu.style.position = 'fixed';
-    menu.style.left = rect.left + 'px';
-    menu.style.top = (rect.bottom + 10) + 'px';
-    menu.style.zIndex = '1000';
+    let top = rect.bottom + 8;
+    let left = rect.left;
+    // Keep on screen
+    if (left + 260 > window.innerWidth) left = window.innerWidth - 270;
+    if (left < 8) left = 8;
+    if (top + 180 > window.innerHeight) top = rect.top - 188;
+    menu.style.cssText = `position:fixed;top:${top}px;left:${left}px;z-index:10001`;
   }
-  
-  // Close on click outside
+
+  // Close on outside click/tap
   setTimeout(() => {
-    document.addEventListener('click', function closeMenu(e) {
+    const close = (e) => {
       if (!menu.contains(e.target)) {
         menu.remove();
-        document.removeEventListener('click', closeMenu);
+        document.removeEventListener('click', close);
+        document.removeEventListener('touchend', close);
+      }
+    };
+    document.addEventListener('click', close);
+    document.addEventListener('touchend', close);
+  }, 100);
+}
+
+function changeHighlightColor(id, color) {
+  const chapterKey = 'ch' + currentChapter;
+  if (!annotations[chapterKey]?.[id]) return;
+  annotations[chapterKey][id].color = color;
+  saveAnnotations();
+  document.querySelectorAll('.annotation-menu').forEach(m => m.remove());
+  renderChapter();
+}
       }
     });
   }, 100);
@@ -1517,17 +1575,14 @@ function editAnnotationNote(id) {
   const chapterKey = 'ch' + currentChapter;
   const ann = annotations[chapterKey][id];
   if (!ann) return;
-  
-  const newNote = prompt('Modifier la note :', ann.note || '');
-  if (newNote === null) return;
-  
-  ann.note = newNote;
-  saveAnnotations();
-  renderChapter();
-  
-  // Close menu
   document.querySelectorAll('.annotation-menu').forEach(m => m.remove());
-  showToast('✏️ Note modifiée !');
+  showNoteModal(ann.text, ann.note || '', (newNote) => {
+    if (newNote === null) return;
+    ann.note = newNote;
+    saveAnnotations();
+    renderChapter();
+    showToast('✏️ Note modifiée !');
+  });
 }
 
 function deleteAnnotation(id) {
@@ -1642,26 +1697,26 @@ function toggleAnnotationsPanel() {
 
 function renderHighlightsList() {
   let html = '<div class="annotations-list">';
-  
+  let hasAny = false;
+
   Object.entries(annotations).forEach(([chKey, chData]) => {
     if (chKey === 'bookmarks' || typeof chData !== 'object') return;
-    
     const chNum = parseInt(chKey.replace('ch', ''));
     const chTitle = chapters[chNum]?.title || `Chapitre ${chNum + 1}`;
-    
+
     Object.entries(chData).forEach(([id, ann]) => {
-      const colorEmoji = {
-        yellow: '🟡',
-        green: '🟢',
-        pink: '🔴',
-        blue: '🔵'
-      }[ann.color] || '🟡';
-      
+      hasAny = true;
+      const colorLabel = { yellow: 'Jaune', green: 'Vert', pink: 'Rose', blue: 'Bleu' }[ann.color] || '';
+      const colorDot = { yellow: '#fbbf24', green: '#4ade80', pink: '#f472b6', blue: '#60a5fa' }[ann.color] || '#fbbf24';
+
       html += `
-        <div class="annotation-item" onclick="goToAnnotation(${chNum}, '${id}')">
+        <div class="annotation-item" data-color="${ann.color}" onclick="goToAnnotation(${chNum}, '${id}')">
           <div class="annotation-item-header">
-            <span>${colorEmoji} ${chTitle}</span>
-            <span style="font-size:.7rem;color:var(--text3)">${new Date(ann.date).toLocaleDateString()}</span>
+            <span style="display:flex;align-items:center;gap:6px">
+              <span style="width:10px;height:10px;border-radius:50%;background:${colorDot};display:inline-block;flex-shrink:0"></span>
+              <span>${chTitle}</span>
+            </span>
+            <span style="font-size:.7rem;color:var(--text2)">${new Date(ann.date).toLocaleDateString()}</span>
           </div>
           <div class="annotation-item-text">"${ann.text.substring(0, 100)}${ann.text.length > 100 ? '...' : ''}"</div>
           ${ann.note ? `<div class="annotation-item-note">📝 ${ann.note}</div>` : ''}
@@ -1669,9 +1724,9 @@ function renderHighlightsList() {
       `;
     });
   });
-  
+
   html += '</div>';
-  return html || '<p style="text-align:center;color:var(--text2);padding:40px">Aucun surlignage</p>';
+  return hasAny ? html : '<p style="text-align:center;color:var(--text2);padding:40px 20px;font-size:.9rem">Aucun surlignage pour l\'instant.<br><br>Active le mode ✏️ et tape sur une phrase !</p>';
 }
 
 function renderBookmarksList() {
