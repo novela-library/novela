@@ -1102,11 +1102,45 @@ function applyAnnotations() {
   });
 }
 
-// Text selection handler
+// ===== ANNOTATION MODE =====
+let annotationMode = false;
+let selectedText = '';
+let selectedRange = null;
+
+function toggleAnnotationMode() {
+  annotationMode = !annotationMode;
+  const btn = document.getElementById('toggle-annotation-btn');
+  const textEl = document.getElementById('book-text');
+  
+  if (annotationMode) {
+    btn.innerHTML = '<i class="fas fa-highlighter"></i> Mode annotation: ON';
+    btn.style.background = 'var(--accent)';
+    btn.style.color = '#fff';
+    textEl.style.userSelect = 'text';
+    textEl.style.webkitUserSelect = 'text';
+    showToast('✨ Mode annotation activé - Sélectionnez du texte');
+  } else {
+    btn.innerHTML = '<i class="fas fa-highlighter"></i> Annoter';
+    btn.style.background = 'var(--bg3)';
+    btn.style.color = 'var(--text)';
+    textEl.style.userSelect = 'none';
+    textEl.style.webkitUserSelect = 'none';
+    hideHighlightMenu();
+    window.getSelection().removeAllRanges();
+  }
+}
+
+// Text selection handler - only works in annotation mode
 document.addEventListener('mouseup', handleTextSelection);
 document.addEventListener('touchend', handleTextSelection);
 
 function handleTextSelection(e) {
+  // Only handle selection in annotation mode
+  if (!annotationMode) return;
+  
+  // Don't trigger on button clicks
+  if (e.target.closest('button') || e.target.closest('.highlight-menu')) return;
+  
   const selection = window.getSelection();
   const text = selection.toString().trim();
   
@@ -1127,30 +1161,44 @@ function showHighlightMenu(e) {
     menu.id = 'highlight-menu';
     menu.className = 'highlight-menu';
     menu.innerHTML = `
-      <button onclick="highlightText('yellow')" style="background:#ffeb3b" title="Jaune">🟡</button>
-      <button onclick="highlightText('green')" style="background:#4caf50" title="Vert">🟢</button>
-      <button onclick="highlightText('pink')" style="background:#f472b6" title="Rose">🔴</button>
-      <button onclick="highlightText('blue')" style="background:#2196f3" title="Bleu">🔵</button>
-      <button onclick="addNote()" title="Ajouter une note">📝</button>
-      <button onclick="addBookmark()" title="Marque-page">🔖</button>
+      <button onclick="highlightText('yellow'); event.stopPropagation();" style="background:#ffeb3b" title="Jaune">🟡</button>
+      <button onclick="highlightText('green'); event.stopPropagation();" style="background:#4caf50" title="Vert">🟢</button>
+      <button onclick="highlightText('pink'); event.stopPropagation();" style="background:#f472b6" title="Rose">🔴</button>
+      <button onclick="highlightText('blue'); event.stopPropagation();" style="background:#2196f3" title="Bleu">🔵</button>
+      <button onclick="addNote(); event.stopPropagation();" title="Ajouter une note">📝</button>
+      <button onclick="addBookmark(); event.stopPropagation();" title="Marque-page">🔖</button>
+      <button onclick="hideHighlightMenu(); event.stopPropagation();" style="background:#f87171" title="Fermer">✕</button>
     `;
     document.body.appendChild(menu);
   }
   
-  const x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-  const y = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+  // Better positioning for mobile and desktop
+  const x = e.clientX || (e.changedTouches && e.changedTouches[0].clientX) || window.innerWidth / 2;
+  const y = e.clientY || (e.changedTouches && e.changedTouches[0].clientY) || 100;
   
-  menu.style.left = x + 'px';
-  menu.style.top = (y - 60) + 'px';
+  // Keep menu on screen
+  const menuWidth = 280;
+  const menuHeight = 50;
+  let left = Math.min(x - menuWidth / 2, window.innerWidth - menuWidth - 10);
+  left = Math.max(10, left);
+  let top = y - menuHeight - 10;
+  if (top < 10) top = y + 20;
+  
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
   menu.style.display = 'flex';
   
-  // Hide after 5 seconds
-  setTimeout(() => hideHighlightMenu(), 5000);
+  // Auto-hide after 10 seconds
+  clearTimeout(menu.hideTimeout);
+  menu.hideTimeout = setTimeout(() => hideHighlightMenu(), 10000);
 }
 
 function hideHighlightMenu() {
   const menu = document.getElementById('highlight-menu');
-  if (menu) menu.style.display = 'none';
+  if (menu) {
+    menu.style.display = 'none';
+    clearTimeout(menu.hideTimeout);
+  }
 }
 
 // Highlight text

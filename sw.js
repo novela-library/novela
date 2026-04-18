@@ -1,9 +1,9 @@
-const CACHE = 'novela-v1.0.4';
-const STATIC = ['/', '/index.html', '/app.js?v=1.0.4', '/style.css?v=1.0.4', '/logo.png',
-  '/reader.html', '/reader.css', '/reader.js?v=1.0.4', '/book_texts.js?v=1.0.4'];
+const CACHE = 'novela-v1.0.5';
+const STATIC = ['/', '/index.html', '/app.js?v=1.0.5', '/style.css?v=1.0.5', '/logo.png',
+  '/reader.html', '/reader.css', '/reader.js?v=1.0.5', '/book_texts.js?v=1.0.5'];
 
 self.addEventListener('install', e => {
-  console.log('[SW] Installing version 1.0.4');
+  console.log('[SW] Installing version 1.0.5');
   e.waitUntil(
     caches.open(CACHE).then(c => c.addAll(STATIC)).catch(err => console.log('[SW] Cache error:', err))
   );
@@ -11,7 +11,7 @@ self.addEventListener('install', e => {
 });
 
 self.addEventListener('activate', e => {
-  console.log('[SW] Activating version 1.0.4');
+  console.log('[SW] Activating version 1.0.5');
   e.waitUntil(
     caches.keys().then(keys => {
       // Delete all old caches
