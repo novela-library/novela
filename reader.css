@@ -234,10 +234,7 @@ body {
   line-height: 1.8;
   color: var(--text) !important;
   font-family: 'Lora', Georgia, serif;
-  user-select: none; /* Disable text selection by default */
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+  /* user-select will be controlled by JavaScript based on annotation mode */
 }
 .book-text p {
   margin-bottom: 1.4em;

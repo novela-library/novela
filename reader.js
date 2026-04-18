@@ -1112,6 +1112,11 @@ function toggleAnnotationMode() {
   const btn = document.getElementById('toggle-annotation-btn');
   const textEl = document.getElementById('book-text');
   
+  if (!textEl) {
+    console.error('book-text element not found');
+    return;
+  }
+  
   if (annotationMode) {
     btn.innerHTML = '<i class="fas fa-highlighter"></i> Mode annotation: ON';
     btn.style.background = 'var(--accent)';
@@ -1123,12 +1128,21 @@ function toggleAnnotationMode() {
     btn.innerHTML = '<i class="fas fa-highlighter"></i> Annoter';
     btn.style.background = 'var(--bg3)';
     btn.style.color = 'var(--text)';
-    textEl.style.userSelect = 'none';
-    textEl.style.webkitUserSelect = 'none';
+    textEl.style.userSelect = 'auto'; // Changed from 'none' to 'auto' to allow normal reading
+    textEl.style.webkitUserSelect = 'auto';
     hideHighlightMenu();
     window.getSelection().removeAllRanges();
   }
 }
+
+// Initialize text as selectable on load
+window.addEventListener('DOMContentLoaded', () => {
+  const textEl = document.getElementById('book-text');
+  if (textEl) {
+    textEl.style.userSelect = 'auto';
+    textEl.style.webkitUserSelect = 'auto';
+  }
+});
 
 // Text selection handler - only works in annotation mode
 document.addEventListener('mouseup', handleTextSelection);

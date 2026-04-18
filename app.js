@@ -1865,6 +1865,13 @@ async function fetchGutenbergPage(replace = false) {
   const el = document.getElementById('library-books');
   const loadingBar = document.getElementById('library-loading-bar');
   const loadMoreWrap = document.getElementById('load-more-wrap');
+  
+  console.log('fetchGutenbergPage called:', { 
+    replace, 
+    page: gutenbergPage, 
+    loadMoreWrapExists: !!loadMoreWrap,
+    currentDisplay: loadMoreWrap?.style.display 
+  });
 
   if (replace) {
     // Show loading bar
@@ -1947,20 +1954,35 @@ async function fetchGutenbergPage(replace = false) {
     if (loadMoreWrap) {
       const shouldShow = data.next || (data.results && data.results.length >= 32);
       loadMoreWrap.style.display = shouldShow ? 'block' : 'none';
-      console.log('Load more button:', shouldShow ? 'visible' : 'hidden');
+      console.log('Load more button:', shouldShow ? 'visible' : 'hidden', 'Element exists:', !!loadMoreWrap);
+    } else {
+      console.error('Load more wrap element not found!');
     }
   } catch(e) {
     console.error('Gutenberg fetch error:', e);
     if (replace) {
       // Fallback to local books if Gutenberg fails
       renderBooks('library-books', BOOKS.slice(0, 20));
-      if (loadMoreWrap) loadMoreWrap.style.display = 'none';
+      if (loadMoreWrap) {
+        loadMoreWrap.style.display = 'none';
+      } else {
+        console.error('Load more wrap element not found in error handler!');
+      }
     }
   }
   
   // Hide loading bar
   if (loadingBar) loadingBar.style.display = 'none';
   gutenbergLoading = false;
+  
+  // Final check: ensure load more button is visible if we're on page 1
+  setTimeout(() => {
+    const btn = document.getElementById('load-more-wrap');
+    if (btn && gutenbergPage === 1) {
+      btn.style.display = 'block';
+      console.log('Force showing load more button on page 1');
+    }
+  }, 500);
 }
 
 function renderGutenbergBooks(books, replace) {
