@@ -23,10 +23,24 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .auth-tabs{display:flex;gap:4px;background:var(--bg3);border-radius:12px;padding:4px;margin-bottom:28px}
 .auth-tab{flex:1;padding:10px;border:none;border-radius:9px;background:transparent;color:var(--text2);cursor:pointer;font-size:.9rem;font-weight:500;transition:all .2s}
 .auth-tab.active{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(124,106,247,.4)}
-.auth-box input{width:100%;padding:13px 16px;background:var(--bg3);border:1.5px solid rgba(255,255,255,.06);border-radius:var(--radius);color:var(--text);font-size:.95rem;margin-bottom:12px;outline:none;transition:border-color .2s}
+.auth-box input{width:100%;padding:13px 16px;background:var(--bg3);border:1.5px solid rgba(255,255,255,.06);border-radius:var(--radius);color:var(--text);font-size:.95rem;margin-bottom:0;outline:none;transition:border-color .2s}
 .auth-box input:focus{border-color:var(--accent)}
 .auth-box input::placeholder{color:var(--text3)}
 .error-msg{color:var(--error);font-size:.82rem;margin-top:6px;min-height:18px}
+
+/* Auth input groups with icons */
+.auth-input-group{position:relative;margin-bottom:12px}
+.auth-input-group input{padding-left:42px;padding-right:42px;width:100%}
+.auth-input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:.85rem;pointer-events:none}
+.auth-eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;padding:4px;font-size:.85rem;transition:color .2s}
+.auth-eye-btn:hover{color:var(--accent3)}
+
+/* Password strength bar */
+.auth-password-strength{margin-bottom:12px}
+.pstr-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:4px}
+.pstr-bar div{height:100%;border-radius:2px;transition:width .3s,background .3s}
+#pstr-label{font-size:.75rem;color:var(--text2)}
+
 
 /* ===== BUTTONS ===== */
 .btn-primary{width:100%;padding:13px 24px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:var(--radius);font-weight:600;font-size:.95rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(124,106,247,.35)}
@@ -798,3 +812,17 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   .genre-bar-label{min-width:80px;font-size:.75rem}
   .reading-heatmap{grid-template-columns:repeat(7,1fr);gap:3px}
 }
+
+/* ===== COMMUNITY REVIEWS ===== */
+.community-reviews-list { display:flex; flex-direction:column; gap:10px; }
+.community-review-item { background:var(--bg3); border:1px solid rgba(255,255,255,.05); border-radius:12px; padding:12px 14px; }
+.cr-header { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+.cr-avatar { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.85rem; color:#fff; flex-shrink:0; }
+.cr-meta { flex:1; }
+.cr-user { font-size:.85rem; font-weight:600; color:var(--text); }
+.cr-stars { display:flex; gap:2px; margin-top:2px; }
+.cr-right { display:flex; align-items:center; gap:8px; margin-left:auto; }
+.cr-date { font-size:.72rem; color:var(--text3); }
+.cr-report-btn { background:none; border:none; color:var(--text3); cursor:pointer; padding:4px 6px; border-radius:6px; font-size:.78rem; transition:all .2s; }
+.cr-report-btn:hover { color:#f87171; background:rgba(248,113,113,.1); }
+.cr-text { font-size:.85rem; color:var(--text2); font-style:italic; line-height:1.5; margin-top:4px; }

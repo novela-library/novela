@@ -3,98 +3,225 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Novela — Admin</title>
+<title>Novela — Admin Dashboard</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#07080f;--bg2:#0d0e1c;--bg3:#13152a;--bg4:#1a1d35;--text:#eeeeff;--text2:#8b8fa8;--accent:#7c6af7;--accent3:#a78bfa;--success:#34d399;--error:#f87171;--radius:12px}
-body{font-family:Inter,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:32px}
-h1{font-size:1.8rem;font-weight:800;margin-bottom:8px;background:linear-gradient(135deg,var(--accent3),#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.subtitle{color:var(--text2);margin-bottom:32px;font-size:.9rem}
-.stats{display:flex;gap:16px;margin-bottom:32px;flex-wrap:wrap}
-.stat-card{background:var(--bg2);border:1px solid rgba(124,106,247,.15);border-radius:var(--radius);padding:20px 28px;min-width:140px}
-.stat-card .num{font-size:2rem;font-weight:900;color:var(--accent3)}
-.stat-card .label{font-size:.8rem;color:var(--text2);margin-top:4px}
-.toolbar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
-.search-input{padding:10px 16px;background:var(--bg2);border:1.5px solid rgba(255,255,255,.07);border-radius:50px;color:var(--text);font-size:.88rem;outline:none;width:280px;transition:border-color .2s}
+:root{--bg:#07080f;--bg2:#0d0e1c;--bg3:#13152a;--bg4:#1a1d35;--text:#eeeeff;--text2:#8b8fa8;--text3:#555878;--accent:#7c6af7;--accent3:#a78bfa;--success:#34d399;--error:#f87171;--warn:#fbbf24;--radius:12px}
+body{font-family:Inter,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+
+/* SIDEBAR */
+.admin-sidebar{width:220px;background:var(--bg2);border-right:1px solid rgba(255,255,255,.05);display:flex;flex-direction:column;padding:24px 0;position:fixed;top:0;left:0;bottom:0;z-index:10}
+.admin-logo{padding:0 20px 24px;font-size:1.1rem;font-weight:800;background:linear-gradient(135deg,var(--accent3),#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:16px}
+.admin-logo img{width:28px;height:28px;object-fit:contain;-webkit-text-fill-color:initial}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;cursor:pointer;font-size:.88rem;font-weight:500;color:var(--text2);transition:all .2s;border-left:3px solid transparent;position:relative}
+.nav-item:hover{background:rgba(124,106,247,.08);color:var(--text)}
+.nav-item.active{background:rgba(124,106,247,.12);color:var(--accent3);border-left-color:var(--accent3)}
+.nav-item i{width:18px;text-align:center}
+.nav-badge{background:var(--error);color:#fff;font-size:.65rem;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:auto}
+.sidebar-bottom{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,.05)}
+.logout-btn{width:100%;padding:10px;background:rgba(248,113,113,.1);color:var(--error);border:1px solid rgba(248,113,113,.2);border-radius:var(--radius);cursor:pointer;font-size:.85rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
+.logout-btn:hover{background:rgba(248,113,113,.2)}
+
+/* MAIN */
+.admin-main{margin-left:220px;flex:1;padding:32px;min-height:100vh}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.page-title{font-size:1.5rem;font-weight:800}
+.page-title span{font-size:.85rem;font-weight:400;color:var(--text2);margin-left:10px}
+.admin-page{display:none}
+.admin-page.active{display:block}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{background:var(--bg2);border:1px solid rgba(124,106,247,.12);border-radius:var(--radius);padding:20px 22px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent)}
+.stat-card.green::before{background:var(--success)}
+.stat-card.red::before{background:var(--error)}
+.stat-card.yellow::before{background:var(--warn)}
+.stat-num{font-size:2rem;font-weight:900;color:var(--accent3)}
+.stat-card.green .stat-num{color:var(--success)}
+.stat-card.red .stat-num{color:var(--error)}
+.stat-card.yellow .stat-num{color:var(--warn)}
+.stat-label{font-size:.78rem;color:var(--text2);margin-top:4px}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.search-input{padding:10px 16px;background:var(--bg2);border:1.5px solid rgba(255,255,255,.07);border-radius:50px;color:var(--text);font-size:.88rem;outline:none;width:260px;transition:border-color .2s}
 .search-input:focus{border-color:var(--accent)}
 .search-input::placeholder{color:var(--text2)}
-.btn{padding:10px 20px;border-radius:var(--radius);border:none;cursor:pointer;font-size:.85rem;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border-radius:var(--radius);border:none;cursor:pointer;font-size:.83rem;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
 .btn-primary{background:linear-gradient(135deg,var(--accent),#5b4de0);color:#fff;box-shadow:0 4px 12px rgba(124,106,247,.3)}
 .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,106,247,.4)}
-.btn-danger{background:rgba(248,113,113,.15);color:var(--error);border:1px solid rgba(248,113,113,.3)}
-.btn-danger:hover{background:rgba(248,113,113,.25)}
-.btn-edit{background:rgba(124,106,247,.15);color:var(--accent3);border:1px solid rgba(124,106,247,.3)}
-.btn-edit:hover{background:rgba(124,106,247,.25)}
-.btn-sm{padding:6px 12px;font-size:.78rem}
-table{width:100%;border-collapse:collapse;background:var(--bg2);border-radius:var(--radius);overflow:hidden;border:1px solid rgba(255,255,255,.05)}
+.btn-danger{background:rgba(248,113,113,.12);color:var(--error);border:1px solid rgba(248,113,113,.25)}
+.btn-danger:hover{background:rgba(248,113,113,.22)}
+.btn-success{background:rgba(52,211,153,.12);color:var(--success);border:1px solid rgba(52,211,153,.25)}
+.btn-success:hover{background:rgba(52,211,153,.22)}
+.btn-edit{background:rgba(124,106,247,.12);color:var(--accent3);border:1px solid rgba(124,106,247,.25)}
+.btn-edit:hover{background:rgba(124,106,247,.22)}
+.btn-warn{background:rgba(251,191,36,.12);color:var(--warn);border:1px solid rgba(251,191,36,.25)}
+.btn-warn:hover{background:rgba(251,191,36,.22)}
+.btn-sm{padding:5px 11px;font-size:.76rem}
+
+/* TABLE */
+.table-wrap{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);overflow:hidden}
+table{width:100%;border-collapse:collapse}
 thead{background:var(--bg3)}
-th{padding:14px 16px;text-align:left;font-size:.8rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
-td{padding:14px 16px;font-size:.88rem;border-top:1px solid rgba(255,255,255,.04)}
-tr:hover td{background:rgba(124,106,247,.04)}
-.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600}
-.badge-active{background:rgba(52,211,153,.15);color:var(--success)}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .3s}
+th{padding:12px 16px;text-align:left;font-size:.75rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+td{padding:12px 16px;font-size:.86rem;border-top:1px solid rgba(255,255,255,.04);vertical-align:middle}
+tr:hover td{background:rgba(124,106,247,.03)}
+.td-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600}
+.badge-active{background:rgba(52,211,153,.12);color:var(--success)}
+.badge-banned{background:rgba(248,113,113,.12);color:var(--error)}
+.badge-pending{background:rgba(251,191,36,.12);color:var(--warn)}
+.badge-resolved{background:rgba(52,211,153,.12);color:var(--success)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .3s;padding:20px}
 .modal-overlay.open{opacity:1;pointer-events:all}
-.modal{background:var(--bg2);border:1px solid rgba(124,106,247,.2);border-radius:20px;padding:36px;width:100%;max-width:440px;position:relative}
-.modal h2{font-size:1.3rem;font-weight:800;margin-bottom:24px}
-.modal label{display:block;font-size:.82rem;color:var(--text2);margin-bottom:6px;margin-top:14px}
-.modal input{width:100%;padding:11px 14px;background:var(--bg3);border:1.5px solid rgba(255,255,255,.07);border-radius:var(--radius);color:var(--text);font-size:.9rem;outline:none;transition:border-color .2s}
-.modal input:focus{border-color:var(--accent)}
-.modal-actions{display:flex;gap:10px;margin-top:24px}
-.modal-close{position:absolute;top:14px;right:14px;background:var(--bg3);border:none;color:var(--text2);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:.85rem}
-.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:50px;font-size:.85rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.modal{background:var(--bg2);border:1px solid rgba(124,106,247,.2);border-radius:20px;padding:32px;width:100%;max-width:460px;position:relative;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:1.2rem;font-weight:800;margin-bottom:20px}
+.modal label{display:block;font-size:.8rem;color:var(--text2);margin-bottom:5px;margin-top:14px}
+.modal input,.modal select,.modal textarea{width:100%;padding:10px 13px;background:var(--bg3);border:1.5px solid rgba(255,255,255,.07);border-radius:var(--radius);color:var(--text);font-size:.9rem;outline:none;transition:border-color .2s;font-family:inherit}
+.modal input:focus,.modal select:focus,.modal textarea:focus{border-color:var(--accent)}
+.modal-actions{display:flex;gap:10px;margin-top:22px}
+.modal-close{position:absolute;top:14px;right:14px;background:var(--bg3);border:none;color:var(--text2);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.modal-close:hover{background:rgba(248,113,113,.2);color:var(--error)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:50px;font-size:.85rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;display:flex;align-items:center;gap:8px}
 .toast.show{opacity:1}
-.toast.success{background:rgba(52,211,153,.2);color:var(--success);border:1px solid rgba(52,211,153,.3)}
-.toast.error{background:rgba(248,113,113,.2);color:var(--error);border:1px solid rgba(248,113,113,.3)}
-.empty{text-align:center;padding:60px;color:var(--text2)}
-.empty i{font-size:2.5rem;margin-bottom:12px;display:block;color:var(--text3)}
+.toast.success{background:rgba(52,211,153,.15);color:var(--success);border:1px solid rgba(52,211,153,.3)}
+.toast.error{background:rgba(248,113,113,.15);color:var(--error);border:1px solid rgba(248,113,113,.3)}
+.toast.info{background:rgba(124,106,247,.15);color:var(--accent3);border:1px solid rgba(124,106,247,.3)}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text2)}
+.empty-state i{font-size:2.5rem;margin-bottom:12px;display:block;opacity:.4}
+
+/* REVIEW CARD */
+.review-card{background:var(--bg3);border:1px solid rgba(255,255,255,.05);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.review-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:10px;flex-wrap:wrap}
+.review-user{font-weight:600;font-size:.88rem}
+.review-stars{color:#fbbf24;font-size:.78rem}
+.review-text{font-size:.85rem;color:var(--text2);font-style:italic;line-height:1.5}
+.review-meta{font-size:.72rem;color:var(--text3);margin-top:6px}
+
+/* REPORT CARD */
+.report-card{background:var(--bg3);border:1px solid rgba(255,255,255,.05);border-radius:12px;padding:14px 16px;margin-bottom:10px;border-left:3px solid var(--warn)}
+.report-card.resolved{border-left-color:var(--success);opacity:.6}
+
+@media(max-width:768px){
+  .admin-sidebar{width:60px}
+  .admin-sidebar .nav-item span,.admin-logo span,.sidebar-bottom .logout-btn span{display:none}
+  .admin-main{margin-left:60px;padding:16px}
+}
 </style>
 </head>
 <body>
+<!-- SIDEBAR -->
+<aside class="admin-sidebar">
+  <div class="admin-logo"><img src="logo.png" alt=""/><span>Novela Admin</span></div>
+  <div class="nav-item active" onclick="showAdminPage('dashboard')" id="nav-dashboard"><i class="fas fa-chart-line"></i><span>Dashboard</span></div>
+  <div class="nav-item" onclick="showAdminPage('users')" id="nav-users"><i class="fas fa-users"></i><span>Utilisateurs</span></div>
+  <div class="nav-item" onclick="showAdminPage('reviews')" id="nav-reviews"><i class="fas fa-star"></i><span>Avis</span></div>
+  <div class="nav-item" onclick="showAdminPage('reports')" id="nav-reports"><i class="fas fa-flag"></i><span>Signalements</span><span class="nav-badge" id="reports-badge" style="display:none">0</span></div>
+  <div class="sidebar-bottom">
+    <div style="font-size:.75rem;color:var(--text3);margin-bottom:10px" id="server-status"><span style="color:var(--success)">● Connecté</span></div>
+    <button class="logout-btn" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i><span>Déconnexion</span></button>
+  </div>
+</aside>
+<!-- MAIN -->
+<main class="admin-main">
 
-<h1><i class="fas fa-shield-alt" style="-webkit-text-fill-color:var(--accent3);margin-right:8px"></i><img src="logo.png" style="width:32px;height:32px;vertical-align:middle;margin-right:6px;object-fit:contain">Novela Admin</h1>
-<p class="subtitle">Gestion des comptes utilisateurs — <span id="server-status" style="color:var(--success)">● Connecté</span> &nbsp;|&nbsp; <button onclick="adminLogout()" style="background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.3);padding:4px 12px;border-radius:20px;cursor:pointer;font-size:.78rem;font-weight:600"><i class="fas fa-sign-out-alt"></i> Déconnexion</button></p>
+<!-- MAIN -->
+<main class="admin-main">
 
-<div class="stats">
-  <div class="stat-card"><div class="num" id="total-users">—</div><div class="label">Utilisateurs</div></div>
-  <div class="stat-card"><div class="num" id="today-users">—</div><div class="label">Inscrits aujourd'hui</div></div>
+<!-- DASHBOARD -->
+<div class="admin-page active" id="page-dashboard">
+  <div class="page-header"><div class="page-title">Dashboard <span id="dash-date"></span></div></div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-num" id="stat-total-users">—</div><div class="stat-label">👥 Utilisateurs</div></div>
+    <div class="stat-card green"><div class="stat-num" id="stat-today-users">—</div><div class="stat-label">✨ Inscrits aujourd'hui</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-total-reviews">—</div><div class="stat-label">⭐ Avis publiés</div></div>
+    <div class="stat-card red"><div class="stat-num" id="stat-pending-reports">—</div><div class="stat-label">🚩 Signalements en attente</div></div>
+  </div>
+  <div style="background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);padding:20px;margin-bottom:20px">
+    <h3 style="font-size:.9rem;font-weight:700;margin-bottom:14px;color:var(--text2)">⚡ Actions rapides</h3>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="showAdminPage('users')"><i class="fas fa-users"></i> Utilisateurs</button>
+      <button class="btn btn-warn" onclick="showAdminPage('reports')"><i class="fas fa-flag"></i> Signalements</button>
+      <button class="btn btn-edit" onclick="showAdminPage('reviews')"><i class="fas fa-star"></i> Avis</button>
+      <button class="btn btn-success" onclick="loadAll()"><i class="fas fa-sync"></i> Actualiser</button>
+    </div>
+  </div>
+  <div style="background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);padding:20px">
+    <h3 style="font-size:.9rem;font-weight:700;margin-bottom:14px;color:var(--text2)">🕐 Derniers inscrits</h3>
+    <div id="recent-users-list"></div>
+  </div>
 </div>
 
-<div class="toolbar">
-  <input type="text" class="search-input" id="search" placeholder="🔍 Rechercher par nom ou email..." oninput="filterTable()"/>
-  <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Ajouter un compte</button>
-  <button class="btn btn-edit" onclick="loadUsers()"><i class="fas fa-sync"></i> Actualiser</button>
+<!-- USERS -->
+<div class="admin-page" id="page-users">
+  <div class="page-header">
+    <div class="page-title">Utilisateurs</div>
+    <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Ajouter</button>
+  </div>
+  <div class="toolbar">
+    <input type="text" class="search-input" id="user-search" placeholder="🔍 Nom, email ou username..." oninput="filterUsers()"/>
+    <button class="btn btn-edit btn-sm" onclick="loadUsers()"><i class="fas fa-sync"></i></button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Nom</th><th>Username</th><th>Email</th><th>Inscrit le</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody id="users-tbody"><tr><td colspan="7" class="empty-state"><i class="fas fa-spinner fa-spin"></i></td></tr></tbody>
+    </table>
+  </div>
 </div>
 
-<table id="users-table">
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Nom</th>
-      <th>Email</th>
-      <th>Inscrit le</th>
-      <th>Statut</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody id="users-tbody">
-    <tr><td colspan="6" class="empty"><i class="fas fa-spinner fa-spin"></i><br>Chargement...</td></tr>
-  </tbody>
-</table>
+<!-- REVIEWS -->
+<div class="admin-page" id="page-reviews">
+  <div class="page-header">
+    <div class="page-title">Avis &amp; Commentaires</div>
+    <button class="btn btn-edit btn-sm" onclick="loadReviews()"><i class="fas fa-sync"></i> Actualiser</button>
+  </div>
+  <div class="toolbar">
+    <input type="text" class="search-input" id="review-search" placeholder="🔍 Rechercher..." oninput="filterReviews()"/>
+  </div>
+  <div id="reviews-list"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div></div>
+</div>
 
-<!-- EDIT MODAL -->
+<!-- REPORTS -->
+<div class="admin-page" id="page-reports">
+  <div class="page-header">
+    <div class="page-title">Signalements</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-success btn-sm" onclick="resolveAllReports()"><i class="fas fa-check-double"></i> Tout résoudre</button>
+      <button class="btn btn-edit btn-sm" onclick="loadReports()"><i class="fas fa-sync"></i></button>
+    </div>
+  </div>
+  <div id="reports-list"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div></div>
+</div>
+
+</main>
+
+<!-- EDIT USER MODAL -->
 <div class="modal-overlay" id="edit-modal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('edit-modal')"><i class="fas fa-times"></i></button>
-    <h2 id="modal-title">Modifier le compte</h2>
+    <h2>✏️ Modifier le compte</h2>
     <input type="hidden" id="edit-id"/>
-    <label>Nom complet</label>
-    <input type="text" id="edit-name" placeholder="Nom"/>
-    <label>Email</label>
-    <input type="email" id="edit-email" placeholder="Email"/>
-    <label>Nouveau mot de passe <span style="color:var(--text2);font-weight:400">(laisser vide pour ne pas changer)</span></label>
+    <label>Nom complet</label><input type="text" id="edit-name" placeholder="Nom"/>
+    <label>Nom d'utilisateur</label><input type="text" id="edit-username" placeholder="username"/>
+    <label>Email</label><input type="email" id="edit-email" placeholder="Email"/>
+    <label>Nouveau mot de passe <span style="color:var(--text3);font-weight:400">(vide = inchangé)</span></label>
     <input type="password" id="edit-pass" placeholder="Nouveau mot de passe"/>
+    <label>Statut</label>
+    <select id="edit-banned"><option value="false">✅ Actif</option><option value="true">🚫 Banni</option></select>
     <div class="modal-actions">
       <button class="btn btn-primary" onclick="saveUser()"><i class="fas fa-save"></i> Sauvegarder</button>
       <button class="btn btn-danger" onclick="closeModal('edit-modal')">Annuler</button>
@@ -102,17 +229,15 @@ tr:hover td{background:rgba(124,106,247,.04)}
   </div>
 </div>
 
-<!-- ADD MODAL -->
+<!-- ADD USER MODAL -->
 <div class="modal-overlay" id="add-modal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('add-modal')"><i class="fas fa-times"></i></button>
-    <h2>Ajouter un compte</h2>
-    <label>Nom complet</label>
-    <input type="text" id="add-name" placeholder="Nom"/>
-    <label>Email</label>
-    <input type="email" id="add-email" placeholder="Email"/>
-    <label>Mot de passe</label>
-    <input type="password" id="add-pass" placeholder="Mot de passe"/>
+    <h2>➕ Ajouter un compte</h2>
+    <label>Nom complet</label><input type="text" id="add-name" placeholder="Nom"/>
+    <label>Nom d'utilisateur</label><input type="text" id="add-username" placeholder="username (optionnel)"/>
+    <label>Email</label><input type="email" id="add-email" placeholder="Email"/>
+    <label>Mot de passe</label><input type="password" id="add-pass" placeholder="Mot de passe"/>
     <div class="modal-actions">
       <button class="btn btn-primary" onclick="addUser()"><i class="fas fa-plus"></i> Créer</button>
       <button class="btn btn-danger" onclick="closeModal('add-modal')">Annuler</button>
@@ -124,139 +249,257 @@ tr:hover td{background:rgba(124,106,247,.04)}
 
 <script>
 const API = window.location.origin + '/api';
-let allUsers = [];
-// Récupère le token depuis l'URL ou sessionStorage
+let allUsers = [], allReviews = [], allReports = [];
 const urlToken = new URLSearchParams(window.location.search).get('token');
 const ADMIN_TOKEN = urlToken || sessionStorage.getItem('admin_token') || '';
 if (urlToken) sessionStorage.setItem('admin_token', urlToken);
-if (!ADMIN_TOKEN) window.location.href = '/admin.html'; // redirect to login
+if (!ADMIN_TOKEN) window.location.href = '/admin-login.html';
 
-async function apiFetch(endpoint, options = {}) {
-  return fetch(API + endpoint, {
-    ...options,
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN, ...(options.headers || {}) }
-  });
+function showAdminPage(page) {
+  document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nav-' + page).classList.add('active');
+  if (page === 'users') loadUsers();
+  if (page === 'reviews') loadReviews();
+  if (page === 'reports') loadReports();
 }
 
+async function apiFetch(endpoint, options = {}) {
+  return fetch(API + endpoint, { ...options, headers: { 'Content-Type':'application/json', 'x-admin-token':ADMIN_TOKEN, ...(options.headers||{}) } });
+}
+
+async function loadAll() {
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
+  await Promise.all([loadUsers(), loadReviews(), loadReports()]);
+  updateDashStats();
+}
+
+function updateDashStats() {
+  document.getElementById('stat-total-users').textContent = allUsers.length;
+  const today = new Date().toDateString();
+  document.getElementById('stat-today-users').textContent = allUsers.filter(u => new Date(u.createdAt).toDateString() === today).length;
+  document.getElementById('stat-total-reviews').textContent = allReviews.length;
+  const pending = allReports.filter(r => r.status === 'pending').length;
+  document.getElementById('stat-pending-reports').textContent = pending;
+  const badge = document.getElementById('reports-badge');
+  badge.textContent = pending; badge.style.display = pending > 0 ? 'inline-flex' : 'none';
+  const recent = [...allUsers].sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt)).slice(0,5);
+  document.getElementById('recent-users-list').innerHTML = recent.length
+    ? recent.map(u => `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#5b4de0);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;flex-shrink:0">${(u.name||'?')[0].toUpperCase()}</div>
+        <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:.88rem">${u.name}</div><div style="font-size:.75rem;color:var(--text2)">${u.email}${u.username?' · @'+u.username:''}</div></div>
+        <div style="font-size:.75rem;color:var(--text3);flex-shrink:0">${u.createdAt?new Date(u.createdAt).toLocaleDateString('fr-FR'):'—'}</div>
+      </div>`).join('')
+    : '<p style="color:var(--text2);font-size:.85rem">Aucun utilisateur</p>';
+}
+
+// USERS
 async function loadUsers() {
   try {
     const res = await apiFetch('/users');
-    if (res.status === 401) { sessionStorage.removeItem('admin_token'); window.location.href = '/admin.html'; return; }
-    if (!res.ok) throw new Error();
+    if (res.status === 401) { sessionStorage.removeItem('admin_token'); window.location.href='/admin-login.html'; return; }
     allUsers = await res.json();
-    renderTable(allUsers);
-    document.getElementById('total-users').textContent = allUsers.length;
-    const today = new Date().toDateString();
-    const todayCount = allUsers.filter(u => new Date(u.createdAt).toDateString() === today).length;
-    document.getElementById('today-users').textContent = todayCount;
-    document.getElementById('server-status').textContent = '● Connecté';
-    document.getElementById('server-status').style.color = '#34d399';
+    renderUsers(allUsers);
+    document.getElementById('server-status').innerHTML = '<span style="color:var(--success)">● Connecté</span>';
   } catch(e) {
-    document.getElementById('server-status').textContent = '● Serveur hors ligne';
-    document.getElementById('server-status').style.color = '#f87171';
-    document.getElementById('users-tbody').innerHTML = `<tr><td colspan="6" class="empty"><i class="fas fa-exclamation-triangle"></i><br>Serveur non démarré.<br><small style="margin-top:8px;display:block">Lance <code style="background:#1a1d35;padding:2px 8px;border-radius:4px">node server.js</code> dans le terminal</small></td></tr>`;
+    document.getElementById('server-status').innerHTML = '<span style="color:var(--error)">● Hors ligne</span>';
+    document.getElementById('users-tbody').innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fas fa-exclamation-triangle"></i><br>Serveur hors ligne</td></tr>`;
   }
 }
 
-function renderTable(users) {
+function renderUsers(users) {
   const tbody = document.getElementById('users-tbody');
-  if (!users.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty"><i class="fas fa-users"></i><br>Aucun utilisateur</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = users.map((u, i) => `
-    <tr>
-      <td style="color:var(--text2)">${i+1}</td>
-      <td><strong>${u.name}</strong></td>
-      <td style="color:var(--text2)">${u.email}</td>
-      <td style="color:var(--text2)">${u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR') : '—'}</td>
-      <td><span class="badge badge-active">Actif</span></td>
-      <td style="display:flex;gap:8px">
-        <button class="btn btn-edit btn-sm" onclick="openEditModal(${u.id}, '${u.name.replace(/'/g,"\\'")}', '${u.email}')">
-          <i class="fas fa-edit"></i> Modifier
-        </button>
-        <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id}, '${u.name.replace(/'/g,"\\'")}')">
-          <i class="fas fa-trash"></i> Supprimer
-        </button>
-      </td>
-    </tr>`).join('');
+  if (!users.length) { tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><i class="fas fa-users"></i><br>Aucun utilisateur</td></tr>`; return; }
+  tbody.innerHTML = users.map((u,i) => `<tr>
+    <td style="color:var(--text3)">${i+1}</td>
+    <td><strong>${u.name}</strong></td>
+    <td style="color:var(--text2)">${u.username?'@'+u.username:'<span style="color:var(--text3)">—</span>'}</td>
+    <td style="color:var(--text2)">${u.email}</td>
+    <td style="color:var(--text3);font-size:.8rem">${u.createdAt?new Date(u.createdAt).toLocaleDateString('fr-FR'):'—'}</td>
+    <td><span class="badge ${u.banned?'badge-banned':'badge-active'}">${u.banned?'🚫 Banni':'✅ Actif'}</span></td>
+    <td><div class="td-actions">
+      <button class="btn btn-edit btn-sm" onclick="openEditModal(${u.id},'${esc(u.name)}','${esc(u.username||'')}','${esc(u.email)}',${!!u.banned})"><i class="fas fa-edit"></i> Modifier</button>
+      <button class="btn ${u.banned?'btn-success':'btn-warn'} btn-sm" onclick="toggleBan(${u.id},${!u.banned},'${esc(u.name)}')">${u.banned?'<i class="fas fa-unlock"></i> Débannir':'<i class="fas fa-ban"></i> Bannir'}</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id},'${esc(u.name)}')"><i class="fas fa-trash"></i></button>
+    </div></td>
+  </tr>`).join('');
 }
 
-function filterTable() {
-  const q = document.getElementById('search').value.toLowerCase();
-  const filtered = allUsers.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
-  renderTable(filtered);
+function filterUsers() {
+  const q = document.getElementById('user-search').value.toLowerCase();
+  renderUsers(allUsers.filter(u => u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q)||(u.username||'').toLowerCase().includes(q)));
 }
 
-function openEditModal(id, name, email) {
-  document.getElementById('edit-id').value = id;
-  document.getElementById('edit-name').value = name;
-  document.getElementById('edit-email').value = email;
-  document.getElementById('edit-pass').value = '';
+function openEditModal(id,name,username,email,banned) {
+  document.getElementById('edit-id').value=id; document.getElementById('edit-name').value=name;
+  document.getElementById('edit-username').value=username; document.getElementById('edit-email').value=email;
+  document.getElementById('edit-pass').value=''; document.getElementById('edit-banned').value=String(banned);
   document.getElementById('edit-modal').classList.add('open');
 }
-
 function openAddModal() {
-  document.getElementById('add-name').value = '';
-  document.getElementById('add-email').value = '';
-  document.getElementById('add-pass').value = '';
+  ['add-name','add-username','add-email','add-pass'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('add-modal').classList.add('open');
 }
-
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 async function saveUser() {
   const id = document.getElementById('edit-id').value;
-  const body = {
-    name: document.getElementById('edit-name').value.trim(),
-    email: document.getElementById('edit-email').value.trim()
-  };
-  const pass = document.getElementById('edit-pass').value;
-  if (pass) body.pass = pass;
-  const res = await apiFetch(`/users/${id}`, { method: 'PUT', body: JSON.stringify(body) });
-  if (res.ok) { showToast('✅ Compte modifié !', 'success'); closeModal('edit-modal'); loadUsers(); }
-  else showToast('❌ Erreur', 'error');
+  const body = { name:document.getElementById('edit-name').value.trim(), username:document.getElementById('edit-username').value.trim(), email:document.getElementById('edit-email').value.trim(), banned:document.getElementById('edit-banned').value==='true' };
+  const pass = document.getElementById('edit-pass').value; if (pass) body.pass = pass;
+  const res = await apiFetch(`/users/${id}`, { method:'PUT', body:JSON.stringify(body) });
+  if (res.ok) { showToast('✅ Compte modifié !','success'); closeModal('edit-modal'); loadUsers(); }
+  else showToast('❌ Erreur','error');
 }
 
 async function addUser() {
-  const body = {
-    name: document.getElementById('add-name').value.trim(),
-    email: document.getElementById('add-email').value.trim(),
-    pass: document.getElementById('add-pass').value
-  };
-  if (!body.name || !body.email || !body.pass) { showToast('Remplis tous les champs', 'error'); return; }
-  const res = await apiFetch('/register', { method: 'POST', body: JSON.stringify(body) });
+  const body = { name:document.getElementById('add-name').value.trim(), username:document.getElementById('add-username').value.trim(), email:document.getElementById('add-email').value.trim(), pass:document.getElementById('add-pass').value };
+  if (!body.name||!body.email||!body.pass) { showToast('Remplis tous les champs','error'); return; }
+  const res = await apiFetch('/register', { method:'POST', body:JSON.stringify(body) });
   const data = await res.json();
-  if (res.ok) { showToast('✅ Compte créé !', 'success'); closeModal('add-modal'); loadUsers(); }
-  else showToast('❌ ' + (data.error || 'Erreur'), 'error');
+  if (res.ok) { showToast('✅ Compte créé !','success'); closeModal('add-modal'); loadUsers(); }
+  else showToast('❌ '+(data.error||'Erreur'),'error');
 }
 
-async function deleteUser(id, name) {
-  if (!confirm(`Supprimer le compte de "${name}" ?`)) return;
-  const res = await apiFetch(`/users/${id}`, { method: 'DELETE' });
-  if (res.ok) { showToast('🗑️ Compte supprimé', 'success'); loadUsers(); }
-  else showToast('❌ Erreur', 'error');
+async function deleteUser(id,name) {
+  if (!confirm(`Supprimer définitivement "${name}" ?`)) return;
+  const res = await apiFetch(`/users/${id}`, { method:'DELETE' });
+  if (res.ok) { showToast('🗑️ Compte supprimé','success'); loadUsers(); }
+  else showToast('❌ Erreur','error');
 }
+
+async function toggleBan(id,ban,name) {
+  if (!confirm(`${ban?'Bannir':'Débannir'} "${name}" ?`)) return;
+  const res = await apiFetch(`/users/${id}`, { method:'PUT', body:JSON.stringify({ banned:ban }) });
+  if (res.ok) { showToast(ban?'🚫 Banni':'✅ Débanni','success'); loadUsers(); }
+  else showToast('❌ Erreur','error');
+}
+
+// REVIEWS
+async function loadReviews() {
+  try {
+    const res = await apiFetch('/admin/reviews');
+    allReviews = res.ok ? await res.json() : [];
+  } catch(e) {
+    const ratings = JSON.parse(localStorage.getItem('novela_global_ratings')||'{}');
+    allReviews = [];
+    Object.entries(ratings).forEach(([bookId,data]) => (data.reviews||[]).forEach((r,i) => allReviews.push({bookId,index:i,...r})));
+  }
+  renderReviews(allReviews);
+}
+
+function renderReviews(reviews) {
+  const el = document.getElementById('reviews-list');
+  if (!reviews.length) { el.innerHTML='<div class="empty-state"><i class="fas fa-star"></i><br>Aucun avis</div>'; return; }
+  el.innerHTML = reviews.map(r => {
+    const stars = [1,2,3,4,5].map(s=>`<i class="fas fa-star" style="color:${s<=r.rating?'#fbbf24':'#374151'}"></i>`).join('');
+    return `<div class="review-card">
+      <div class="review-card-header">
+        <div><span class="review-user">👤 ${r.user||'Anonyme'}</span><div class="review-stars" style="margin-top:3px">${stars}</div></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:.75rem;color:var(--text3)">Livre #${r.bookId} · ${r.date?new Date(r.date).toLocaleDateString('fr-FR'):'—'}</span>
+          <button class="btn btn-danger btn-sm" onclick="deleteReview(${r.bookId},${r.index})"><i class="fas fa-trash"></i> Supprimer</button>
+        </div>
+      </div>
+      ${r.review?`<p class="review-text">"${r.review}"</p>`:'<p class="review-text" style="color:var(--text3)">Pas de texte</p>'}
+    </div>`;
+  }).join('');
+}
+
+function filterReviews() {
+  const q = document.getElementById('review-search').value.toLowerCase();
+  renderReviews(allReviews.filter(r=>(r.user||'').toLowerCase().includes(q)||(r.review||'').toLowerCase().includes(q)));
+}
+
+async function deleteReview(bookId,index) {
+  if (!confirm('Supprimer cet avis définitivement ?')) return;
+  try {
+    const res = await apiFetch('/admin/reviews', { method:'DELETE', body:JSON.stringify({bookId,index}) });
+    if (res.ok) { showToast('🗑️ Avis supprimé','success'); loadReviews(); return; }
+  } catch(e) {}
+  const ratings = JSON.parse(localStorage.getItem('novela_global_ratings')||'{}');
+  if (ratings[bookId]?.reviews) { ratings[bookId].reviews.splice(index,1); localStorage.setItem('novela_global_ratings',JSON.stringify(ratings)); }
+  showToast('🗑️ Avis supprimé','success'); loadReviews();
+}
+
+// REPORTS
+async function loadReports() {
+  try {
+    const res = await apiFetch('/admin/reports');
+    allReports = res.ok ? await res.json() : [];
+  } catch(e) { allReports = JSON.parse(localStorage.getItem('novela_reports')||'[]'); }
+  renderReports(allReports);
+  const pending = allReports.filter(r=>r.status==='pending').length;
+  const badge = document.getElementById('reports-badge');
+  badge.textContent = pending; badge.style.display = pending>0?'inline-flex':'none';
+}
+
+function renderReports(reports) {
+  const el = document.getElementById('reports-list');
+  if (!reports.length) { el.innerHTML='<div class="empty-state"><i class="fas fa-flag"></i><br>Aucun signalement</div>'; return; }
+  const sorted = [...reports].sort((a,b)=>(a.status==='pending'?0:1)-(b.status==='pending'?0:1));
+  el.innerHTML = sorted.map(r => `<div class="report-card ${r.status==='resolved'?'resolved':''}">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span class="badge ${r.status==='pending'?'badge-pending':'badge-resolved'}">${r.status==='pending'?'⏳ En attente':'✅ Résolu'}</span>
+          <span style="font-size:.75rem;color:var(--text3)">${r.date?new Date(r.date).toLocaleDateString('fr-FR'):'—'}</span>
+        </div>
+        <div style="font-size:.85rem;margin-bottom:4px"><strong>Raison :</strong> <span style="color:var(--warn)">${r.reason||'—'}</span></div>
+        <div style="font-size:.82rem;color:var(--text2)">Avis de <strong>${r.reviewUser||'Anonyme'}</strong> : <em>"${(r.reviewText||'').substring(0,80)}${(r.reviewText||'').length>80?'...':''}"</em></div>
+        <div style="font-size:.75rem;color:var(--text3);margin-top:4px">Signalé par : ${r.reportedBy||'—'} · Livre #${r.bookId}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${r.status==='pending'?`
+          <button class="btn btn-danger btn-sm" onclick="deleteReviewFromReport(${r.bookId},${r.reviewIndex},${r.id})"><i class="fas fa-trash"></i> Supprimer l'avis</button>
+          <button class="btn btn-success btn-sm" onclick="resolveReport(${r.id})"><i class="fas fa-check"></i> Résoudre</button>
+        `:`<button class="btn btn-edit btn-sm" onclick="resolveReport(${r.id},'pending')"><i class="fas fa-undo"></i> Rouvrir</button>`}
+      </div>
+    </div>
+  </div>`).join('');
+}
+
+async function resolveReport(id, status='resolved') {
+  try { await apiFetch(`/admin/reports/${id}`, { method:'PUT', body:JSON.stringify({status}) }); }
+  catch(e) {
+    const reports = JSON.parse(localStorage.getItem('novela_reports')||'[]');
+    const idx = reports.findIndex(r=>r.id===id);
+    if (idx!==-1) { reports[idx].status=status; localStorage.setItem('novela_reports',JSON.stringify(reports)); }
+  }
+  showToast(status==='resolved'?'✅ Résolu':'🔄 Rouvert','success'); loadReports();
+}
+
+async function deleteReviewFromReport(bookId,reviewIndex,reportId) {
+  if (!confirm('Supprimer cet avis et résoudre le signalement ?')) return;
+  await deleteReview(bookId,reviewIndex);
+  await resolveReport(reportId);
+}
+
+async function resolveAllReports() {
+  const pending = allReports.filter(r=>r.status==='pending');
+  if (!pending.length) { showToast('Aucun signalement en attente','info'); return; }
+  if (!confirm(`Résoudre ${pending.length} signalement(s) ?`)) return;
+  await Promise.all(pending.map(r=>resolveReport(r.id)));
+  showToast(`✅ ${pending.length} signalements résolus`,'success');
+}
+
+function esc(str) { return (str||'').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 
 async function adminLogout() {
-  await apiFetch('/admin-logout', { method: 'POST', body: JSON.stringify({ token: ADMIN_TOKEN }) }).catch(()=>{});
+  await apiFetch('/admin-logout', { method:'POST', body:'{}' }).catch(()=>{});
   sessionStorage.removeItem('admin_token');
-  window.location.href = '/admin.html';
+  window.location.href = '/admin-login.html';
 }
 
-function showToast(msg, type) {
+function showToast(msg, type='info') {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = `toast ${type} show`;
+  t.textContent = msg; t.className = `toast ${type} show`;
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// Close modal on overlay click
-document.querySelectorAll('.modal-overlay').forEach(el => {
-  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
-});
+document.querySelectorAll('.modal-overlay').forEach(el => el.addEventListener('click', e => { if (e.target===el) el.classList.remove('open'); }));
 
-loadUsers();
+loadAll();
 </script>
 </body>
 </html>

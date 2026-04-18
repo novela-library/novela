@@ -805,47 +805,49 @@ function switchTab(tab) {
 
 async function register() {
   const name = document.getElementById('reg-name').value.trim();
+  const username = document.getElementById('reg-username')?.value.trim() || '';
   const email = document.getElementById('reg-email').value.trim();
   const pass = document.getElementById('reg-password').value;
   const err = document.getElementById('reg-error');
-  if (!name || !email || !pass) { err.textContent = 'All fields are required.'; return; }
-  if (pass.length < 6) { err.textContent = 'Password too short (min 6).'; return; }
+  if (!name || !email || !pass) { err.style.color='var(--error)'; err.textContent = 'Tous les champs sont requis.'; return; }
+  if (pass.length < 6) { err.style.color='var(--error)'; err.textContent = 'Mot de passe trop court (min 6 caractères).'; return; }
+  if (username && !/^[a-z0-9_]{3,20}$/.test(username)) { err.style.color='var(--error)'; err.textContent = 'Nom d\'utilisateur invalide (3-20 caractères, lettres/chiffres/_).'; return; }
   try {
-    const res = await fetch(API_BASE + '/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,email,pass}) });
+    const res = await fetch(API_BASE + '/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, username, email, pass}) });
     const data = await res.json();
-    if (!res.ok) { err.textContent = data.error || 'Error.'; return; }
+    if (!res.ok) { err.style.color='var(--error)'; err.textContent = data.error || 'Erreur.'; return; }
     if (data.requiresVerification === false) {
-      // Email failed — auto-verified, login directly
-      err.style.color = 'var(--success)'; err.textContent = 'Account created! Sign in.';
-      setTimeout(() => { err.textContent = ''; switchTab('login'); }, 1200);
+      err.style.color = 'var(--success)'; err.textContent = '✅ Compte créé ! Connectez-vous.';
+      setTimeout(() => { err.textContent = ''; switchTab('login'); }, 1400);
       return;
     }
-    // Show email verification screen
     showVerifyScreen(email, 'register');
   } catch(e) {
     const users = JSON.parse(localStorage.getItem('biblio_users') || '[]');
-    if (users.find(u => u.email === email)) { err.textContent = 'Email already in use.'; return; }
-    users.push({ id: Date.now(), name, email, pass, verified: true, twofa: false, createdAt: new Date().toISOString() });
+    if (users.find(u => u.email === email)) { err.style.color='var(--error)'; err.textContent = 'Email déjà utilisé.'; return; }
+    if (username && users.find(u => u.username === username)) { err.style.color='var(--error)'; err.textContent = 'Nom d\'utilisateur déjà pris.'; return; }
+    users.push({ id: Date.now(), name, username, email, pass, verified: true, twofa: false, createdAt: new Date().toISOString() });
     localStorage.setItem('biblio_users', JSON.stringify(users));
-    err.style.color = 'var(--success)'; err.textContent = 'Account created! Sign in.';
-    setTimeout(() => { err.textContent = ''; switchTab('login'); }, 1200);
+    err.style.color = 'var(--success)'; err.textContent = '✅ Compte créé ! Connectez-vous.';
+    setTimeout(() => { err.textContent = ''; switchTab('login'); }, 1400);
   }
 }
 
 async function login() {
-  const email = document.getElementById('login-email').value.trim();
+  const emailOrUser = document.getElementById('login-email').value.trim();
   const pass = document.getElementById('login-password').value;
   const err = document.getElementById('login-error');
+  if (!emailOrUser || !pass) { err.textContent = 'Remplissez tous les champs.'; return; }
   try {
-    const res = await fetch(API_BASE + '/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email,pass}) });
+    const res = await fetch(API_BASE + '/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email: emailOrUser, pass}) });
     const data = await res.json();
-    if (!res.ok) { err.textContent = data.error || 'Incorrect email or password.'; return; }
-    if (data.requires2fa) { showVerifyScreen(email, 'login2fa'); return; }
+    if (!res.ok) { err.textContent = data.error || 'Email/username ou mot de passe incorrect.'; return; }
+    if (data.requires2fa) { showVerifyScreen(emailOrUser, 'login2fa'); return; }
     finishLogin(data.user);
   } catch(e) {
     const users = JSON.parse(localStorage.getItem('biblio_users') || '[]');
-    const user = users.find(u => u.email === email && u.pass === pass);
-    if (!user) { err.textContent = 'Incorrect email or password.'; return; }
+    const user = users.find(u => (u.email === emailOrUser || u.username === emailOrUser || u.name === emailOrUser) && u.pass === pass);
+    if (!user) { err.textContent = 'Email/username ou mot de passe incorrect.'; return; }
     finishLogin(user);
   }
 }
@@ -859,6 +861,44 @@ function finishLogin(user) {
   document.getElementById('nav-username').textContent = user.name;
   loadApiKey().then(() => initApp());
 }
+
+// ===== AUTH HELPERS =====
+function togglePassVis(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const isPass = input.type === 'password';
+  input.type = isPass ? 'text' : 'password';
+  btn.querySelector('i').className = isPass ? 'fas fa-eye-slash' : 'fas fa-eye';
+}
+
+function checkPasswordStrength(pass) {
+  const bar = document.getElementById('pstr-fill');
+  const label = document.getElementById('pstr-label');
+  const wrap = document.getElementById('pass-strength');
+  if (!bar || !pass) return;
+  wrap.style.display = pass.length > 0 ? 'block' : 'none';
+  let score = 0;
+  if (pass.length >= 8) score++;
+  if (/[A-Z]/.test(pass)) score++;
+  if (/[0-9]/.test(pass)) score++;
+  if (/[^A-Za-z0-9]/.test(pass)) score++;
+  const levels = [
+    { w: '25%', bg: '#ef4444', txt: 'Très faible' },
+    { w: '50%', bg: '#f97316', txt: 'Faible' },
+    { w: '75%', bg: '#eab308', txt: 'Moyen' },
+    { w: '100%', bg: '#22c55e', txt: 'Fort' },
+  ];
+  const l = levels[score] || levels[0];
+  bar.style.width = l.w;
+  bar.style.background = l.bg;
+  label.textContent = l.txt;
+  label.style.color = l.bg;
+}
+
+// Attach password strength listener after DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  const passInput = document.getElementById('reg-password');
+  if (passInput) passInput.addEventListener('input', () => checkPasswordStrength(passInput.value));
+});
 
 // ===== EMAIL VERIFICATION SCREEN =====
 function showVerifyScreen(email, type) {
@@ -1385,15 +1425,114 @@ function saveReview(bookId) {
   
   if (rating > 0) {
     saveRating(bookId, rating, review);
-    // Show success message
     const btn = document.getElementById(`save-review-${bookId}`);
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-check"></i> Sauvegardé !';
     btn.style.background = 'var(--success)';
-    setTimeout(() => {
-      btn.innerHTML = originalText;
-      btn.style.background = '';
-    }, 2000);
+    setTimeout(() => { btn.innerHTML = originalText; btn.style.background = ''; }, 2000);
+  }
+}
+
+// ===== COMMUNITY REVIEWS =====
+function renderCommunityReviews(bookId) {
+  const globalRatings = JSON.parse(localStorage.getItem('novela_global_ratings') || '{}');
+  const reviews = globalRatings[bookId]?.reviews || [];
+  if (!reviews.length) return '';
+
+  const items = reviews.map((r, i) => {
+    const stars = [1,2,3,4,5].map(s => `<i class="fas fa-star" style="color:${s<=r.rating?'#fbbf24':'#374151'};font-size:.7rem"></i>`).join('');
+    const date = new Date(r.date).toLocaleDateString('fr-FR');
+    const avatar = (r.user || 'A')[0].toUpperCase();
+    return `
+      <div class="community-review-item">
+        <div class="cr-header">
+          <div class="cr-avatar">${avatar}</div>
+          <div class="cr-meta">
+            <span class="cr-user">${r.user || 'Anonyme'}</span>
+            <div class="cr-stars">${stars}</div>
+          </div>
+          <div class="cr-right">
+            <span class="cr-date">${date}</span>
+            <button class="cr-report-btn" onclick="reportReview(${bookId},${i},'${(r.review||'').replace(/'/g,"\\'").substring(0,80)}','${(r.user||'').replace(/'/g,"\\'")}')">
+              <i class="fas fa-flag"></i>
+            </button>
+          </div>
+        </div>
+        ${r.review ? `<p class="cr-text">"${r.review}"</p>` : ''}
+      </div>`;
+  }).join('');
+
+  return `
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06)">
+      <h4 style="font-size:.9rem;margin-bottom:12px;color:var(--text2)">
+        <i class="fas fa-users" style="margin-right:6px"></i>Avis de la communauté (${reviews.length})
+      </h4>
+      <div class="community-reviews-list">${items}</div>
+    </div>`;
+}
+
+async function reportReview(bookId, reviewIndex, reviewText, reviewUser) {
+  const reasons = ['Contenu inapproprié', 'Spam', 'Harcèlement', 'Faux avis', 'Autre'];
+  
+  // Show reason picker modal
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid rgba(124,106,247,.3);border-radius:16px;padding:24px;max-width:360px;width:100%">
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:6px;color:var(--text)"><i class="fas fa-flag" style="color:#f87171;margin-right:8px"></i>Signaler cet avis</h3>
+      <p style="font-size:.82rem;color:var(--text2);margin-bottom:16px;font-style:italic">"${reviewText}${reviewText.length>=80?'...':''}"</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+        ${reasons.map(r => `<button onclick="submitReport(${bookId},${reviewIndex},'${reviewText}','${reviewUser}','${r}',this.closest('[style*=fixed]'))" 
+          style="padding:10px 14px;background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);cursor:pointer;text-align:left;font-size:.88rem;transition:all .2s"
+          onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">${r}</button>`).join('')}
+      </div>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;padding:10px;background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text2);cursor:pointer;font-size:.85rem">Annuler</button>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+async function submitReport(bookId, reviewIndex, reviewText, reviewUser, reason, modalEl) {
+  modalEl.remove();
+  try {
+    await fetch('/api/admin/reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bookId, reviewIndex, reviewText, reviewUser, reason, reportedBy: currentUser?.name || 'Anonyme' })
+    });
+  } catch(e) {
+    // Store locally as fallback
+    const reports = JSON.parse(localStorage.getItem('novela_reports') || '[]');
+    reports.push({ bookId, reviewIndex, reviewText, reviewUser, reason, reportedBy: currentUser?.name, date: Date.now(), status: 'pending' });
+    localStorage.setItem('novela_reports', JSON.stringify(reports));
+  }
+  showProfileToast('🚩 Signalement envoyé. Merci !');
+}
+
+// ===== UPDATE USERNAME/NAME =====
+async function updateUsername(newName, newUsername) {
+  if (!currentUser) return;
+  try {
+    const res = await fetch('/api/update-profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: currentUser.email, name: newName, username: newUsername })
+    });
+    const data = await res.json();
+    if (!res.ok) return { error: data.error };
+    currentUser.name = newName || currentUser.name;
+    currentUser.username = newUsername || currentUser.username;
+    localStorage.setItem('biblio_session', JSON.stringify(currentUser));
+    document.getElementById('nav-username').textContent = currentUser.name;
+    return { success: true };
+  } catch(e) {
+    // Fallback: update locally
+    currentUser.name = newName || currentUser.name;
+    currentUser.username = newUsername || currentUser.username;
+    localStorage.setItem('biblio_session', JSON.stringify(currentUser));
+    const users = JSON.parse(localStorage.getItem('biblio_users') || '[]');
+    const idx = users.findIndex(u => u.email === currentUser.email);
+    if (idx !== -1) { users[idx].name = currentUser.name; users[idx].username = currentUser.username; localStorage.setItem('biblio_users', JSON.stringify(users)); }
+    return { success: true };
   }
 }
 
@@ -1692,6 +1831,7 @@ async function openBook(id) {
         <i class="fas fa-save"></i> Sauvegarder l'avis
       </button>
     </div>
+    ${renderCommunityReviews(b.id)}
     
     <br>
     <div style="display:flex;gap:10px;clear:both;margin-top:12px">

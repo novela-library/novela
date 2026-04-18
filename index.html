@@ -154,21 +154,46 @@
 
     <!-- LOGIN -->
     <div id="login-form">
-      <input type="email" id="login-email" placeholder="Email" />
-      <input type="password" id="login-password" placeholder="Mot de passe" />
-      <button class="btn-primary" onclick="login()">Sign in</button>
+      <div class="auth-input-group">
+        <i class="fas fa-user auth-input-icon"></i>
+        <input type="text" id="login-email" placeholder="Email ou nom d'utilisateur" autocomplete="username"/>
+      </div>
+      <div class="auth-input-group">
+        <i class="fas fa-lock auth-input-icon"></i>
+        <input type="password" id="login-password" placeholder="Mot de passe" autocomplete="current-password"/>
+        <button type="button" class="auth-eye-btn" onclick="togglePassVis('login-password',this)"><i class="fas fa-eye"></i></button>
+      </div>
+      <button class="btn-primary" onclick="login()"><i class="fas fa-sign-in-alt"></i> Se connecter</button>
       <p style="text-align:center;margin-top:10px;font-size:.82rem">
-        <button onclick="showForgotPassword()" style="background:none;border:none;color:var(--accent3);cursor:pointer;font-size:.82rem">Forgot password?</button>
+        <button onclick="showForgotPassword()" style="background:none;border:none;color:var(--accent3);cursor:pointer;font-size:.82rem">Mot de passe oublié ?</button>
       </p>
       <p id="login-error" class="error-msg"></p>
     </div>
 
     <!-- REGISTER -->
     <div id="register-form" style="display:none">
-      <input type="text" id="reg-name" placeholder="Nom complet" />
-      <input type="email" id="reg-email" placeholder="Email" />
-      <input type="password" id="reg-password" placeholder="Mot de passe" />
-      <button class="btn-primary" onclick="register()">Créer un compte</button>
+      <div class="auth-input-group">
+        <i class="fas fa-user auth-input-icon"></i>
+        <input type="text" id="reg-name" placeholder="Nom complet" autocomplete="name"/>
+      </div>
+      <div class="auth-input-group">
+        <i class="fas fa-at auth-input-icon"></i>
+        <input type="text" id="reg-username" placeholder="Nom d'utilisateur (ex: john42)" autocomplete="username" oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()"/>
+      </div>
+      <div class="auth-input-group">
+        <i class="fas fa-envelope auth-input-icon"></i>
+        <input type="email" id="reg-email" placeholder="Email" autocomplete="email"/>
+      </div>
+      <div class="auth-input-group">
+        <i class="fas fa-lock auth-input-icon"></i>
+        <input type="password" id="reg-password" placeholder="Mot de passe (min. 6 caractères)" autocomplete="new-password"/>
+        <button type="button" class="auth-eye-btn" onclick="togglePassVis('reg-password',this)"><i class="fas fa-eye"></i></button>
+      </div>
+      <div class="auth-password-strength" id="pass-strength" style="display:none">
+        <div class="pstr-bar"><div id="pstr-fill"></div></div>
+        <span id="pstr-label"></span>
+      </div>
+      <button class="btn-primary" onclick="register()"><i class="fas fa-user-plus"></i> Créer mon compte</button>
       <p id="reg-error" class="error-msg"></p>
     </div>
   </div>

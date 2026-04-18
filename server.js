@@ -546,17 +546,16 @@ const server = http.createServer(async (req, res) => {
   // POST /api/register — create account + send verification email
   if (pathname === '/api/register' && req.method === 'POST') {
     const body = await getBody(req);
-    const { name, email, pass } = body;
+    const { name, email, pass, username } = body;
     if (!name || !email || !pass) { sendJSON(res, 400, { error: 'Missing fields' }); return; }
     const users = readUsers();
     if (users.find(u => u.email === email)) { sendJSON(res, 409, { error: 'Email already in use' }); return; }
-    const newUser = { id: Date.now(), name, email, pass, verified: true, twofa: false, createdAt: new Date().toISOString() };
+    if (username && users.find(u => u.username === username)) { sendJSON(res, 409, { error: 'Username already taken' }); return; }
+    const newUser = { id: Date.now(), name, username: username || '', email, pass, verified: true, twofa: false, createdAt: new Date().toISOString() };
     users.push(newUser);
     writeUsers(users);
-    // Email verification disabled for now
-    // Save to Supabase
     await addUserDB(newUser);
-    sendJSON(res, 201, { success: true, requiresVerification: false, user: { id: newUser.id, name, email } });
+    sendJSON(res, 201, { success: true, requiresVerification: false, user: { id: newUser.id, name, username: newUser.username, email } });
     return;
   }
 
@@ -583,9 +582,10 @@ const server = http.createServer(async (req, res) => {
     const { email, pass } = body;
     // Always read fresh from Supabase for login
     const users = await readUsersDB();
-    const user = users.find(u => u.email === email && u.pass === pass);
-    if (!user) { sendJSON(res, 401, { error: 'Incorrect email or password' }); return; }
-    sendJSON(res, 200, { success: true, user: { id: user.id, name: user.name, email: user.email, twofa: user.twofa } });
+    // Accept email OR username
+    const user = users.find(u => (u.email === email || u.username === email || u.name === email) && u.pass === pass);
+    if (!user) { sendJSON(res, 401, { error: 'Incorrect email/username or password' }); return; }
+    sendJSON(res, 200, { success: true, user: { id: user.id, name: user.name, username: user.username || '', email: user.email, twofa: user.twofa } });
     return;
   }
 
@@ -656,8 +656,10 @@ const server = http.createServer(async (req, res) => {
     const idx = users.findIndex(u => u.id === id);
     if (idx === -1) { sendJSON(res, 404, { error: 'Utilisateur introuvable' }); return; }
     if (body.name) users[idx].name = body.name;
+    if (body.username !== undefined) users[idx].username = body.username;
     if (body.email) users[idx].email = body.email;
     if (body.pass) users[idx].pass = body.pass;
+    if (body.banned !== undefined) users[idx].banned = body.banned;
     writeUsers(users);
     sendJSON(res, 200, { success: true });
     return;
@@ -671,6 +673,94 @@ const server = http.createServer(async (req, res) => {
     if (filtered.length === users.length) { sendJSON(res, 404, { error: 'Utilisateur introuvable' }); return; }
     writeUsers(filtered);
     sendJSON(res, 200, { success: true });
+    return;
+  }
+
+  // ===== ADMIN REVIEWS/REPORTS =====
+
+  // GET /api/admin/reviews — get all reviews (admin)
+  if (pathname === '/api/admin/reviews' && req.method === 'GET') {
+    const token = req.headers['x-admin-token'];
+    if (!validateAdminToken(token)) { sendJSON(res, 401, { error: 'Non autorisé' }); return; }
+    const ratings = JSON.parse(fs.existsSync('global_ratings.json') ? fs.readFileSync('global_ratings.json','utf8') : '{}');
+    const all = [];
+    Object.entries(ratings).forEach(([bookId, data]) => {
+      (data.reviews || []).forEach((r, i) => {
+        all.push({ bookId, index: i, ...r });
+      });
+    });
+    all.sort((a, b) => b.date - a.date);
+    sendJSON(res, 200, all);
+    return;
+  }
+
+  // DELETE /api/admin/reviews — delete a review (admin)
+  if (pathname === '/api/admin/reviews' && req.method === 'DELETE') {
+    const token = req.headers['x-admin-token'];
+    if (!validateAdminToken(token)) { sendJSON(res, 401, { error: 'Non autorisé' }); return; }
+    const body = await getBody(req);
+    const { bookId, index } = body;
+    const ratingsPath = 'global_ratings.json';
+    const ratings = JSON.parse(fs.existsSync(ratingsPath) ? fs.readFileSync(ratingsPath,'utf8') : '{}');
+    if (ratings[bookId]?.reviews) {
+      ratings[bookId].reviews.splice(index, 1);
+      fs.writeFileSync(ratingsPath, JSON.stringify(ratings));
+    }
+    sendJSON(res, 200, { success: true });
+    return;
+  }
+
+  // GET /api/admin/reports — get all reports (admin)
+  if (pathname === '/api/admin/reports' && req.method === 'GET') {
+    const token = req.headers['x-admin-token'];
+    if (!validateAdminToken(token)) { sendJSON(res, 401, { error: 'Non autorisé' }); return; }
+    const reports = JSON.parse(fs.existsSync('reports.json') ? fs.readFileSync('reports.json','utf8') : '[]');
+    sendJSON(res, 200, reports);
+    return;
+  }
+
+  // POST /api/admin/reports — submit a report (user)
+  if (pathname === '/api/admin/reports' && req.method === 'POST') {
+    const body = await getBody(req);
+    const { bookId, reviewIndex, reviewText, reviewUser, reason, reportedBy } = body;
+    const reportsPath = 'reports.json';
+    const reports = JSON.parse(fs.existsSync(reportsPath) ? fs.readFileSync(reportsPath,'utf8') : '[]');
+    reports.push({ id: Date.now(), bookId, reviewIndex, reviewText, reviewUser, reason, reportedBy, date: Date.now(), status: 'pending' });
+    fs.writeFileSync(reportsPath, JSON.stringify(reports));
+    sendJSON(res, 200, { success: true });
+    return;
+  }
+
+  // PUT /api/admin/reports/:id — update report status (admin)
+  if (pathname.startsWith('/api/admin/reports/') && req.method === 'PUT') {
+    const token = req.headers['x-admin-token'];
+    if (!validateAdminToken(token)) { sendJSON(res, 401, { error: 'Non autorisé' }); return; }
+    const id = parseInt(pathname.split('/')[4]);
+    const body = await getBody(req);
+    const reportsPath = 'reports.json';
+    const reports = JSON.parse(fs.existsSync(reportsPath) ? fs.readFileSync(reportsPath,'utf8') : '[]');
+    const idx = reports.findIndex(r => r.id === id);
+    if (idx !== -1) { reports[idx].status = body.status || 'resolved'; fs.writeFileSync(reportsPath, JSON.stringify(reports)); }
+    sendJSON(res, 200, { success: true });
+    return;
+  }
+
+  // POST /api/update-profile — update username/name (user)
+  if (pathname === '/api/update-profile' && req.method === 'POST') {
+    const body = await getBody(req);
+    const { email, name, username } = body;
+    const users = readUsers();
+    const idx = users.findIndex(u => u.email === email);
+    if (idx === -1) { sendJSON(res, 404, { error: 'User not found' }); return; }
+    if (username && username !== users[idx].username) {
+      if (users.find(u => u.username === username && u.email !== email)) {
+        sendJSON(res, 409, { error: 'Username already taken' }); return;
+      }
+      users[idx].username = username;
+    }
+    if (name) users[idx].name = name;
+    writeUsers(users);
+    sendJSON(res, 200, { success: true, user: { ...users[idx], pass: undefined } });
     return;
   }
 
