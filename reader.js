@@ -1176,17 +1176,17 @@ function toggleAnnotationMode() {
   }
   
   if (annotationMode) {
-    btn.innerHTML = '<i class="fas fa-highlighter"></i> Mode annotation: ON';
+    btn.innerHTML = '<i class="fas fa-highlighter"></i>';
     btn.style.background = 'var(--accent)';
     btn.style.color = '#fff';
     textEl.style.userSelect = 'text';
     textEl.style.webkitUserSelect = 'text';
     showToast('✨ Mode annotation activé - Sélectionnez du texte');
   } else {
-    btn.innerHTML = '<i class="fas fa-highlighter"></i> Annoter';
-    btn.style.background = 'var(--bg3)';
-    btn.style.color = 'var(--text)';
-    textEl.style.userSelect = 'auto'; // Changed from 'none' to 'auto' to allow normal reading
+    btn.innerHTML = '<i class="fas fa-highlighter"></i>';
+    btn.style.background = '';
+    btn.style.color = '';
+    textEl.style.userSelect = 'auto';
     textEl.style.webkitUserSelect = 'auto';
     hideHighlightMenu();
     window.getSelection().removeAllRanges();
