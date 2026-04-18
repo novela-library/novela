@@ -1846,6 +1846,7 @@ async function fetchGutenbergPage(replace = false) {
   gutenbergLoading = true;
   const el = document.getElementById('library-books');
   const loadingBar = document.getElementById('library-loading-bar');
+  const loadMoreWrap = document.getElementById('load-more-wrap');
 
   if (replace) {
     // Show loading bar
@@ -1854,6 +1855,9 @@ async function fetchGutenbergPage(replace = false) {
     // INSTANT LOAD: Show local books immediately for instant feedback
     const localBooks = BOOKS.slice(0, 20);
     renderBooks('library-books', localBooks);
+    
+    // Hide load more button initially
+    if (loadMoreWrap) loadMoreWrap.style.display = 'none';
     
     // Then fetch Gutenberg in background to replace with more books
     setTimeout(() => {
@@ -1876,7 +1880,7 @@ async function fetchGutenbergPage(replace = false) {
       const { data, timestamp } = JSON.parse(cached);
       if (Date.now() - timestamp < 300000) { // 5 min
         renderGutenbergBooks(data.results, replace);
-        document.getElementById('load-more-wrap').style.display = data.next ? 'block' : 'none';
+        if (loadMoreWrap) loadMoreWrap.style.display = data.next ? 'block' : 'none';
         if (loadingBar) loadingBar.style.display = 'none';
         gutenbergLoading = false;
         return;
@@ -1906,13 +1910,13 @@ async function fetchGutenbergPage(replace = false) {
     }
     
     renderGutenbergBooks(data.results, replace);
-    document.getElementById('load-more-wrap').style.display = data.next ? 'block' : 'none';
+    if (loadMoreWrap) loadMoreWrap.style.display = data.next ? 'block' : 'none';
   } catch(e) {
     console.error('Gutenberg fetch error:', e);
     if (replace) {
       // Fallback to local books if Gutenberg fails
       renderBooks('library-books', BOOKS.slice(0, 20));
-      document.getElementById('load-more-wrap').style.display = 'none';
+      if (loadMoreWrap) loadMoreWrap.style.display = 'none';
     }
   }
   
