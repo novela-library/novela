@@ -1,5 +1,5 @@
 // ===== VERSION CHECK & AUTO REFRESH =====
-const APP_VERSION = '1.0.3';
+const APP_VERSION = '1.0.4';
 const storedVersion = localStorage.getItem('novela_version');
 if (storedVersion && storedVersion !== APP_VERSION) {
   console.log('New version detected, clearing cache...');
@@ -1895,13 +1895,21 @@ async function fetchGutenbergPage(replace = false) {
     const cacheKey = `gutenberg_${gutenbergPage}_${gutenbergLang}_${gutenbergQuery}`;
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
-      const { data, timestamp } = JSON.parse(cached);
-      if (Date.now() - timestamp < 300000) { // 5 min
-        renderGutenbergBooks(data.results, replace);
-        if (loadMoreWrap) loadMoreWrap.style.display = data.next ? 'block' : 'none';
-        if (loadingBar) loadingBar.style.display = 'none';
-        gutenbergLoading = false;
-        return;
+      try {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < 300000) { // 5 min
+          console.log('Using cached data:', { page: gutenbergPage, resultsCount: data.results?.length, hasNext: !!data.next });
+          renderGutenbergBooks(data.results, replace);
+          // Always show load more button if we have results
+          const shouldShow = data.next || (data.results && data.results.length >= 32);
+          if (loadMoreWrap) loadMoreWrap.style.display = shouldShow ? 'block' : 'none';
+          if (loadingBar) loadingBar.style.display = 'none';
+          gutenbergLoading = false;
+          return;
+        }
+      } catch(e) {
+        console.log('Cache parse error, fetching fresh data');
+        localStorage.removeItem(cacheKey);
       }
     }
 
@@ -1919,6 +1927,13 @@ async function fetchGutenbergPage(replace = false) {
     
     const data = await res.json();
     
+    console.log('Gutenberg response:', { 
+      page: gutenbergPage, 
+      resultsCount: data.results?.length, 
+      hasNext: !!data.next,
+      nextUrl: data.next 
+    });
+    
     // Cache the result
     try {
       localStorage.setItem(cacheKey, JSON.stringify({ data, timestamp: Date.now() }));
@@ -1928,7 +1943,12 @@ async function fetchGutenbergPage(replace = false) {
     }
     
     renderGutenbergBooks(data.results, replace);
-    if (loadMoreWrap) loadMoreWrap.style.display = data.next ? 'block' : 'none';
+    // Always show load more button if we have results (Gutenberg has many pages)
+    if (loadMoreWrap) {
+      const shouldShow = data.next || (data.results && data.results.length >= 32);
+      loadMoreWrap.style.display = shouldShow ? 'block' : 'none';
+      console.log('Load more button:', shouldShow ? 'visible' : 'hidden');
+    }
   } catch(e) {
     console.error('Gutenberg fetch error:', e);
     if (replace) {
