@@ -592,13 +592,18 @@ const server = http.createServer(async (req, res) => {
     const body = await getBody(req);
     const { name, email, pass, username } = body;
     if (!name || !email || !pass) { sendJSON(res, 400, { error: 'Missing fields' }); return; }
-    const users = readUsers();
-    if (users.find(u => u.email === email)) { sendJSON(res, 409, { error: 'Email already in use' }); return; }
-    if (username && users.find(u => u.username === username)) { sendJSON(res, 409, { error: 'Username already taken' }); return; }
+    // Check duplicates in Supabase (source of truth)
+    const allUsers = await readUsersDB();
+    if (allUsers.find(u => u.email === email)) { sendJSON(res, 409, { error: 'Email already in use' }); return; }
+    if (username && allUsers.find(u => u.username === username)) { sendJSON(res, 409, { error: 'Username already taken' }); return; }
     const newUser = { id: Date.now(), name, username: username || '', email, pass, verified: true, twofa: false, createdAt: new Date().toISOString() };
-    users.push(newUser);
-    writeUsers(users);
+    // Save to Supabase first
     await addUserDB(newUser);
+    // Also save locally as fallback
+    const localUsers = readUsersLocal();
+    localUsers.push(newUser);
+    writeUsersLocal(localUsers);
+    usersCache = null; // force fresh read on next login
     sendJSON(res, 201, { success: true, requiresVerification: false, user: { id: newUser.id, name, username: newUser.username, email } });
     return;
   }
