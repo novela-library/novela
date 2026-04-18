@@ -953,6 +953,132 @@ function init3DTilt() {
 const _origInit3D = window.init3DTilt;
 document.addEventListener('click', () => setTimeout(init3DTilt, 300));
 
+// ===== RATINGS & REVIEWS =====
+function getRatings() {
+  return JSON.parse(localStorage.getItem('novela_ratings_' + (currentUser?.email||'')) || '{}');
+}
+
+function saveRating(bookId, rating, review = '') {
+  const ratings = getRatings();
+  ratings[bookId] = { rating, review, date: Date.now() };
+  localStorage.setItem('novela_ratings_' + (currentUser?.email||''), JSON.stringify(ratings));
+  
+  // Update global ratings
+  const globalRatings = JSON.parse(localStorage.getItem('novela_global_ratings') || '{}');
+  if (!globalRatings[bookId]) globalRatings[bookId] = { total: 0, count: 0, reviews: [] };
+  globalRatings[bookId].total += rating;
+  globalRatings[bookId].count += 1;
+  if (review) {
+    globalRatings[bookId].reviews.push({
+      user: currentUser?.name || 'Anonyme',
+      rating,
+      review,
+      date: Date.now()
+    });
+  }
+  localStorage.setItem('novela_global_ratings', JSON.stringify(globalRatings));
+}
+
+function getAverageRating(bookId) {
+  const globalRatings = JSON.parse(localStorage.getItem('novela_global_ratings') || '{}');
+  if (!globalRatings[bookId] || globalRatings[bookId].count === 0) return null;
+  return (globalRatings[bookId].total / globalRatings[bookId].count).toFixed(1);
+}
+
+function getUserRating(bookId) {
+  const ratings = getRatings();
+  return ratings[bookId] || null;
+}
+
+// ===== READING PROGRESS =====
+function getReadingProgress() {
+  return JSON.parse(localStorage.getItem('novela_progress_' + (currentUser?.email||'')) || '{}');
+}
+
+function saveReadingProgress(bookId, position, total) {
+  const progress = getReadingProgress();
+  const percent = Math.round((position / total) * 100);
+  progress[bookId] = {
+    position,
+    total,
+    percent,
+    lastRead: Date.now(),
+    startDate: progress[bookId]?.startDate || Date.now()
+  };
+  localStorage.setItem('novela_progress_' + (currentUser?.email||''), JSON.stringify(progress));
+  
+  // Track reading session
+  const sessions = JSON.parse(localStorage.getItem('novela_sessions_' + (currentUser?.email||'')) || []);
+  sessions.push({ bookId, date: Date.now(), duration: 5 }); // 5 min estimate
+  localStorage.setItem('novela_sessions_' + (currentUser?.email||''), JSON.stringify(sessions));
+}
+
+function getBookProgress(bookId) {
+  const progress = getReadingProgress();
+  return progress[bookId] || null;
+}
+
+function getInProgressBooks() {
+  const progress = getReadingProgress();
+  return Object.entries(progress)
+    .filter(([_, p]) => p.percent > 0 && p.percent < 100)
+    .sort((a, b) => b[1].lastRead - a[1].lastRead)
+    .slice(0, 5);
+}
+
+// ===== READING STATS =====
+function getReadingStats() {
+  const sessions = JSON.parse(localStorage.getItem('novela_sessions_' + (currentUser?.email||'')) || []);
+  const ratings = getRatings();
+  const progress = getReadingProgress();
+  
+  // Books per month (last 6 months)
+  const now = Date.now();
+  const sixMonthsAgo = now - (6 * 30 * 24 * 60 * 60 * 1000);
+  const finishedBooks = Object.entries(progress).filter(([_, p]) => p.percent === 100);
+  
+  const monthlyData = {};
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date(now - (i * 30 * 24 * 60 * 60 * 1000));
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    monthlyData[key] = 0;
+  }
+  
+  finishedBooks.forEach(([_, p]) => {
+    if (p.lastRead >= sixMonthsAgo) {
+      const date = new Date(p.lastRead);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      if (monthlyData[key] !== undefined) monthlyData[key]++;
+    }
+  });
+  
+  // Genre distribution
+  const genreCount = {};
+  finishedBooks.forEach(([bookId, _]) => {
+    const book = BOOKS.find(b => b.id == bookId);
+    if (book) {
+      genreCount[book.genre] = (genreCount[book.genre] || 0) + 1;
+    }
+  });
+  
+  // Reading heatmap (last 90 days)
+  const heatmapData = {};
+  const ninetyDaysAgo = now - (90 * 24 * 60 * 60 * 1000);
+  sessions.filter(s => s.date >= ninetyDaysAgo).forEach(s => {
+    const date = new Date(s.date).toISOString().split('T')[0];
+    heatmapData[date] = (heatmapData[date] || 0) + 1;
+  });
+  
+  return {
+    monthlyData,
+    genreCount,
+    heatmapData,
+    totalBooks: finishedBooks.length,
+    totalSessions: sessions.length,
+    avgRating: Object.values(ratings).reduce((sum, r) => sum + r.rating, 0) / Object.keys(ratings).length || 0
+  };
+}
+
 // ===== BADGES & DÉFIS =====
 const BADGES_DEF = [
   { id:'first_book',  emoji:'📖', name:'Premier livre',    desc:'Lire 1 livre',          condition: u => (u.booksRead||0) >= 1 },
@@ -1063,6 +1189,124 @@ function renderRewardsPage() {
   }
 }
 
+// ===== PAGE STATISTIQUES =====
+function renderStatsPage() {
+  const stats = getReadingStats();
+  const userStats = getUserStats();
+  
+  // Overview cards
+  document.getElementById('stat-total-books').textContent = stats.totalBooks;
+  document.getElementById('stat-avg-rating').textContent = stats.avgRating.toFixed(1);
+  document.getElementById('stat-sessions').textContent = stats.totalSessions;
+  document.getElementById('stat-streak').textContent = userStats.streak || 0;
+  
+  // Monthly chart
+  const monthlyChart = document.getElementById('monthly-chart');
+  if (monthlyChart) {
+    const maxBooks = Math.max(...Object.values(stats.monthlyData), 1);
+    monthlyChart.innerHTML = Object.entries(stats.monthlyData).map(([month, count]) => {
+      const height = (count / maxBooks) * 100;
+      const label = month.split('-')[1] + '/' + month.split('-')[0].slice(2);
+      return `<div class="chart-bar" style="height:${height}%">
+        <span class="chart-bar-value">${count}</span>
+        <span class="chart-bar-label">${label}</span>
+      </div>`;
+    }).join('');
+  }
+  
+  // Genre bars
+  const genreBars = document.getElementById('genre-bars');
+  if (genreBars) {
+    const sortedGenres = Object.entries(stats.genreCount).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const maxCount = Math.max(...sortedGenres.map(g => g[1]), 1);
+    genreBars.innerHTML = sortedGenres.map(([genre, count]) => {
+      const width = (count / maxCount) * 100;
+      return `<div class="genre-bar-item">
+        <div class="genre-bar-label">${genre}</div>
+        <div class="genre-bar-track">
+          <div class="genre-bar-fill" style="width:${width}%">
+            <span class="genre-bar-count">${count}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  
+  // Reading heatmap
+  const heatmap = document.getElementById('reading-heatmap');
+  if (heatmap) {
+    const days = 91; // 13 weeks
+    const now = new Date();
+    let html = '';
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(now - (i * 24 * 60 * 60 * 1000));
+      const dateStr = date.toISOString().split('T')[0];
+      const count = stats.heatmapData[dateStr] || 0;
+      const level = count === 0 ? 0 : Math.min(Math.ceil(count / 2), 4);
+      const tooltip = `${dateStr}: ${count} session${count > 1 ? 's' : ''}`;
+      html += `<div class="heatmap-day level-${level}" title="${tooltip}">
+        <div class="heatmap-tooltip">${tooltip}</div>
+      </div>`;
+    }
+    heatmap.innerHTML = html;
+  }
+}
+
+// Add rating display to book cards
+function addRatingToBookCard(bookId) {
+  const avgRating = getAverageRating(bookId);
+  if (!avgRating) return '';
+  const stars = Math.round(parseFloat(avgRating));
+  let starsHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    starsHTML += `<i class="fas fa-star ${i <= stars ? 'filled' : 'empty'}"></i>`;
+  }
+  return `<div class="book-rating">${starsHTML}<span class="book-rating-text">${avgRating}</span></div>`;
+}
+
+// Add progress badge to book cards
+function addProgressBadge(bookId) {
+  const progress = getBookProgress(bookId);
+  if (!progress || progress.percent === 0 || progress.percent === 100) return '';
+  return `<div class="continue-reading-badge">${progress.percent}%</div>`;
+}
+
+// Rating functions
+function setRating(bookId, rating) {
+  // Update stars visually
+  const stars = document.querySelectorAll(`#rating-input-${bookId} .rating-star`);
+  stars.forEach((star, i) => {
+    star.classList.toggle('active', i < rating);
+  });
+  
+  // Show review textarea and save button
+  document.getElementById(`review-${bookId}`).style.display = 'block';
+  document.getElementById(`save-review-${bookId}`).style.display = 'block';
+  
+  // Save rating immediately
+  const review = document.getElementById(`review-${bookId}`).value;
+  saveRating(bookId, rating, review);
+}
+
+function saveReview(bookId) {
+  const stars = document.querySelectorAll(`#rating-input-${bookId} .rating-star.active`);
+  const rating = stars.length;
+  const review = document.getElementById(`review-${bookId}`).value;
+  
+  if (rating > 0) {
+    saveRating(bookId, rating, review);
+    // Show success message
+    const btn = document.getElementById(`save-review-${bookId}`);
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i> Sauvegardé !';
+    btn.style.background = 'var(--success)';
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+      btn.style.background = '';
+    }, 2000);
+  }
+}
+
 // Ajouter badge toast animation CSS
 const badgeStyle = document.createElement('style');
 badgeStyle.textContent = `
@@ -1102,6 +1346,7 @@ function showPage(id) {
   if (id === 'community') initCommunity();
   if (id === 'scoreboard') renderScoreboard();
   if (id === 'rewards') renderRewardsPage();
+  if (id === 'stats') renderStatsPage();
   if (id === 'home') { renderHomeExtras(); }
   if (id === 'library' && document.getElementById('library-books').children.length <= BOOKS.length) {
     setTimeout(() => fetchGutenbergPage(true), 100);
@@ -1111,7 +1356,7 @@ function showPage(id) {
     if (grid && grid.children.length === 0) initQuizBooks();
   }
   // Update sidebar active state
-  ['home','library','quiz','ai','history','scoreboard','rewards','community'].forEach(p => {
+  ['home','library','quiz','ai','history','scoreboard','rewards','stats','community'].forEach(p => {
     const el = document.getElementById('sb-' + p);
     if (el) el.classList.toggle('active', p === id);
   });
@@ -1341,8 +1586,23 @@ async function openBook(id) {
     <div class="modal-book-meta">
       <span>📅 ${b.year < 0 ? Math.abs(b.year)+' av. J.-C.' : b.year}</span>
       <span>🏷️ ${b.genre}</span>
+      ${getAverageRating(b.id) ? `<span>⭐ ${getAverageRating(b.id)}/5</span>` : ''}
     </div>
     <p class="modal-book-desc">${b.desc}</p>
+    
+    <!-- Rating Section -->
+    <div style="clear:both;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06)">
+      <h4 style="font-size:.9rem;margin-bottom:8px">Votre avis</h4>
+      <div class="rating-input" id="rating-input-${b.id}">
+        ${[1,2,3,4,5].map(i => `<i class="fas fa-star rating-star ${getUserRating(b.id)?.rating >= i ? 'active' : ''}" onclick="setRating(${b.id}, ${i})"></i>`).join('')}
+      </div>
+      ${getUserRating(b.id)?.review ? `<p style="font-size:.85rem;color:var(--text2);font-style:italic;margin-top:8px">"${getUserRating(b.id).review}"</p>` : ''}
+      <textarea class="review-textarea" id="review-${b.id}" placeholder="Écrivez votre avis (optionnel)..." style="display:${getUserRating(b.id) ? 'block' : 'none'}">${getUserRating(b.id)?.review || ''}</textarea>
+      <button class="btn-secondary" id="save-review-${b.id}" style="display:${getUserRating(b.id) ? 'block' : 'none'};margin-top:8px;font-size:.82rem" onclick="saveReview(${b.id})">
+        <i class="fas fa-save"></i> Sauvegarder l'avis
+      </button>
+    </div>
+    
     <br>
     <div style="display:flex;gap:10px;clear:both;margin-top:12px">
       <button class="btn-primary" style="flex:1" onclick="openReader(${b.id}); closeBookModal()">
@@ -2271,7 +2531,44 @@ function switchProfileTab(tab) {
   document.getElementById('ptab-' + tab).classList.add('active');
   if (tab === 'favorites') renderProfileFavorites();
   if (tab === 'later') renderProfileLater();
+  if (tab === 'reviews') renderProfileReviews();
   if (tab === 'history') renderProfileHistory();
+}
+
+function renderProfileReviews() {
+  const ratings = getRatings();
+  const list = document.getElementById('profile-reviews-list');
+  const empty = document.getElementById('reviews-empty');
+  const entries = Object.entries(ratings).sort((a, b) => b[1].date - a[1].date);
+  
+  if (!entries.length) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  
+  empty.style.display = 'none';
+  list.innerHTML = entries.map(([bookId, data]) => {
+    const book = BOOKS.find(b => b.id == bookId);
+    if (!book) return '';
+    
+    const stars = Array(5).fill(0).map((_, i) => 
+      `<i class="fas fa-star ${i < data.rating ? 'filled' : 'empty'}"></i>`
+    ).join('');
+    
+    const date = new Date(data.date).toLocaleDateString('fr-FR');
+    
+    return `<div class="review-item">
+      <div class="review-header">
+        <div>
+          <strong style="color:var(--text);font-size:.9rem">${book.title}</strong>
+          <div class="book-rating" style="margin-top:4px">${stars}</div>
+        </div>
+        <span class="review-date">${date}</span>
+      </div>
+      ${data.review ? `<p class="review-text">${data.review}</p>` : ''}
+    </div>`;
+  }).join('');
 }
 
 function renderProfileFavorites() {
