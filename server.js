@@ -62,12 +62,21 @@ async function addUserDB(user) {
 
 async function updateUserDB(id, updates) {
   if (!SUPABASE_KEY) return;
-  try { await supaFetch('PATCH', `users?id=eq.${id}`, updates); } catch(e) { console.log('Supabase update error:', e.message); }
+  try {
+    const r = await supaFetch('PATCH', `users?id=eq.${id}`, updates);
+    console.log('Supabase update result:', r.status, JSON.stringify(r.data));
+    // Invalidate cache so next login reads fresh data
+    usersCache = null;
+  } catch(e) { console.log('Supabase update error:', e.message); }
 }
 
 async function deleteUserDB(id) {
   if (!SUPABASE_KEY) return;
-  try { await supaFetch('DELETE', `users?id=eq.${id}`); } catch(e) { console.log('Supabase delete error:', e.message); }
+  try {
+    const r = await supaFetch('DELETE', `users?id=eq.${id}`);
+    console.log('Supabase delete result:', r.status);
+    usersCache = null;
+  } catch(e) { console.log('Supabase delete error:', e.message); }
 }
 
 function readUsersLocal() {
