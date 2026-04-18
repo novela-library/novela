@@ -1,0 +1,14 @@
+node_modules/
+books/
+*.log
+.env
+wf.js
+wf2.js
+fix_lang.js
+add_covers.js
+download_books.js
+download_more.js
+build_books.js
+gen_books.js
+inject_books.js
+add_texts.js
