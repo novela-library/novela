@@ -1102,46 +1102,63 @@ function applyAnnotations() {
   if (!annotations[chapterKey]) return;
   
   const textEl = document.getElementById('book-text');
-  let html = textEl.innerHTML;
+  if (!textEl) return;
   
-  // Sort by position (reverse to avoid offset issues)
-  const sorted = Object.entries(annotations[chapterKey]).sort((a, b) => b[1].start - a[1].start);
+  const paras = textEl.querySelectorAll('p');
   
-  sorted.forEach(([id, ann]) => {
-    const color = ann.color || 'yellow';
-    const colorMap = {
-      yellow: 'rgba(255, 235, 59, 0.4)',
-      green: 'rgba(76, 175, 80, 0.4)',
-      pink: 'rgba(244, 114, 182, 0.4)',
-      blue: 'rgba(33, 150, 243, 0.4)'
-    };
+  // Get all annotations for this chapter
+  const anns = Object.entries(annotations[chapterKey]);
+  if (anns.length === 0) return;
+  
+  // Sort by position (forward order)
+  const sorted = anns.sort((a, b) => a[1].start - b[1].start);
+  
+  let charCount = 0;
+  
+  for (let p of paras) {
+    const pText = p.textContent;
+    const pStart = charCount;
+    const pEnd = charCount + pText.length;
     
-    // Find and wrap the text
-    const paras = textEl.querySelectorAll('p');
-    let charCount = 0;
+    // Find annotations in this paragraph
+    const annsInPara = sorted.filter(([id, ann]) => 
+      ann.start >= pStart && ann.end <= pEnd
+    );
     
-    for (let p of paras) {
-      const pText = p.textContent;
-      const pStart = charCount;
-      const pEnd = charCount + pText.length;
+    if (annsInPara.length > 0) {
+      // Build HTML with highlights - process in reverse to maintain positions
+      let html = pText;
+      const reversedAnns = [...annsInPara].reverse();
       
-      if (ann.start >= pStart && ann.start < pEnd) {
+      reversedAnns.forEach(([id, ann]) => {
         const localStart = ann.start - pStart;
-        const localEnd = Math.min(ann.end - pStart, pText.length);
+        const localEnd = ann.end - pStart;
+        const text = html.substring(localStart, localEnd);
         
-        const before = pText.substring(0, localStart);
-        const highlighted = pText.substring(localStart, localEnd);
-        const after = pText.substring(localEnd);
+        const color = ann.color || 'yellow';
+        const hasNote = ann.note ? 'true' : 'false';
+        const noteTitle = ann.note ? ann.note.replace(/"/g, '&quot;') : 'Cliquez pour modifier';
         
-        p.innerHTML = before + 
-          `<mark class="highlight" data-id="${id}" data-color="${color}" style="background:${colorMap[color]};cursor:pointer;border-radius:3px;padding:2px 0" onclick="showAnnotationMenu('${id}')">${highlighted}</mark>` + 
-          after;
-        break;
-      }
+        // Escape the text for HTML
+        const escapedText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        
+        // Create highlight span with modern styling
+        const highlight = `<mark class="highlight" data-id="${id}" data-color="${color}" data-has-note="${hasNote}" onclick="showAnnotationMenu('${id}')" title="${noteTitle}">${escapedText}</mark>`;
+        
+        // Replace in HTML
+        const before = html.substring(0, localStart);
+        const after = html.substring(localEnd);
+        html = before + highlight + after;
+      });
       
-      charCount += pText.length + 1; // +1 for space between paragraphs
+      p.innerHTML = html;
     }
-  });
+    
+    charCount += pText.length + 1; // +1 for paragraph break
+  }
+  
+  // Update bookmark button
+  checkBookmark();
 }
 
 // ===== ANNOTATION MODE =====
