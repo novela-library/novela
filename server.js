@@ -629,10 +629,17 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/login' && req.method === 'POST') {
     const body = await getBody(req);
     const { email, pass } = body;
-    // Always read fresh from Supabase for login
     const users = await readUsersDB();
-    // Accept email OR username
-    const user = users.find(u => (u.email === email || u.username === email || u.name === email) && u.pass === pass);
+    console.log('Login attempt:', email, '| Users in DB:', users.length);
+    // Accept email OR username (case-insensitive)
+    const input = (email || '').toLowerCase().trim();
+    const user = users.find(u =>
+      (u.email?.toLowerCase() === input ||
+       (u.username && u.username.toLowerCase() === input) ||
+       u.name?.toLowerCase() === input)
+      && u.pass === pass
+    );
+    console.log('Login result:', user ? 'found: ' + user.email : 'not found');
     if (!user) { sendJSON(res, 401, { error: 'Incorrect email/username or password' }); return; }
     sendJSON(res, 200, { success: true, user: { id: user.id, name: user.name, username: user.username || '', email: user.email, twofa: user.twofa } });
     return;
