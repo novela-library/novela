@@ -37,6 +37,22 @@ const TRANSLATIONS = {
     prof_fav_empty: "Aucun favori. Cliquez sur ❤️ sur un livre pour l'ajouter.",
     prof_later_empty: 'Aucun livre à lire plus tard.', prof_hist_empty: 'Aucun livre lu.',
     prof_security: 'Sécurité', prof_2fa: 'Authentification à deux facteurs (2FA) — recevoir un code par email à chaque connexion',
+    // Stats & Rewards
+    nav_stats: 'Statistiques', nav_rewards: 'Récompenses',
+    stats_books_finished: 'Livres terminés', stats_avg_rating: 'Note moyenne',
+    stats_sessions: 'Sessions de lecture', stats_streak: 'Jours de suite',
+    stats_monthly: 'Livres par mois', stats_genres: 'Genres préférés',
+    stats_activity: 'Activité de lecture (90 derniers jours)',
+    // Reviews
+    prof_tab_reviews: 'Mes avis', reviews_empty: 'Aucun avis. Notez des livres pour les voir ici.',
+    your_review: 'Votre avis', write_review: 'Écrivez votre avis (optionnel)...',
+    save_review: 'Sauvegarder l\'avis', review_saved: 'Sauvegardé !',
+    // Annotations
+    my_annotations: 'Mes annotations', highlights: 'Surlignages', bookmarks: 'Marque-pages',
+    export: 'Exporter', clear_all: 'Tout effacer', no_highlights: 'Aucun surlignage',
+    no_bookmarks: 'Aucun marque-page', add_note: 'Ajouter une note',
+    edit_note: 'Modifier', delete: 'Supprimer', bookmark_added: 'Marque-page ajouté !',
+    text_highlighted: 'Texte surligné !', note_added: 'Note ajoutée !',
   },
   en: {
     nav_home: 'Home', nav_library: 'Library', nav_quiz: 'Quiz',
@@ -73,6 +89,22 @@ const TRANSLATIONS = {
     prof_fav_empty: 'No favorites yet. Click ❤️ on a book to add it.',
     prof_later_empty: 'No books in your read later list.', prof_hist_empty: 'No books read yet.',
     prof_security: 'Security', prof_2fa: 'Two-factor authentication (2FA) — receive a code by email at each login',
+    // Stats & Rewards
+    nav_stats: 'Statistics', nav_rewards: 'Rewards',
+    stats_books_finished: 'Books finished', stats_avg_rating: 'Average rating',
+    stats_sessions: 'Reading sessions', stats_streak: 'Day streak',
+    stats_monthly: 'Books per month', stats_genres: 'Favorite genres',
+    stats_activity: 'Reading activity (last 90 days)',
+    // Reviews
+    prof_tab_reviews: 'My reviews', reviews_empty: 'No reviews. Rate books to see them here.',
+    your_review: 'Your review', write_review: 'Write your review (optional)...',
+    save_review: 'Save review', review_saved: 'Saved!',
+    // Annotations
+    my_annotations: 'My annotations', highlights: 'Highlights', bookmarks: 'Bookmarks',
+    export: 'Export', clear_all: 'Clear all', no_highlights: 'No highlights',
+    no_bookmarks: 'No bookmarks', add_note: 'Add note',
+    edit_note: 'Edit', delete: 'Delete', bookmark_added: 'Bookmark added!',
+    text_highlighted: 'Text highlighted!', note_added: 'Note added!',
   },
   es: {
     nav_home: 'Inicio', nav_library: 'Biblioteca', nav_quiz: 'Quiz',
@@ -109,6 +141,22 @@ const TRANSLATIONS = {
     prof_fav_empty: 'Sin favoritos. Haz clic en ❤️ en un libro para añadirlo.',
     prof_later_empty: 'No hay libros para leer después.', prof_hist_empty: 'No has leído ningún libro.',
     prof_security: 'Seguridad', prof_2fa: 'Autenticación de dos factores (2FA) — recibir un código por email en cada inicio de sesión',
+    // Stats & Rewards
+    nav_stats: 'Estadísticas', nav_rewards: 'Recompensas',
+    stats_books_finished: 'Libros terminados', stats_avg_rating: 'Nota media',
+    stats_sessions: 'Sesiones de lectura', stats_streak: 'Días seguidos',
+    stats_monthly: 'Libros por mes', stats_genres: 'Géneros favoritos',
+    stats_activity: 'Actividad de lectura (últimos 90 días)',
+    // Reviews
+    prof_tab_reviews: 'Mis reseñas', reviews_empty: 'Sin reseñas. Califica libros para verlos aquí.',
+    your_review: 'Tu reseña', write_review: 'Escribe tu reseña (opcional)...',
+    save_review: 'Guardar reseña', review_saved: '¡Guardado!',
+    // Annotations
+    my_annotations: 'Mis anotaciones', highlights: 'Resaltados', bookmarks: 'Marcadores',
+    export: 'Exportar', clear_all: 'Borrar todo', no_highlights: 'Sin resaltados',
+    no_bookmarks: 'Sin marcadores', add_note: 'Añadir nota',
+    edit_note: 'Editar', delete: 'Eliminar', bookmark_added: '¡Marcador añadido!',
+    text_highlighted: '¡Texto resaltado!', note_added: '¡Nota añadida!',
   },
   ar: {
     nav_home: 'الرئيسية', nav_library: 'المكتبة', nav_quiz: 'اختبار',
@@ -145,6 +193,22 @@ const TRANSLATIONS = {
     prof_fav_empty: 'لا توجد مفضلة. انقر على ❤️ على كتاب لإضافته.',
     prof_later_empty: 'لا توجد كتب للقراءة لاحقاً.', prof_hist_empty: 'لم تقرأ أي كتاب بعد.',
     prof_security: 'الأمان', prof_2fa: 'المصادقة الثنائية (2FA) — استلام رمز عبر البريد الإلكتروني عند كل تسجيل دخول',
+    // Stats & Rewards
+    nav_stats: 'الإحصائيات', nav_rewards: 'المكافآت',
+    stats_books_finished: 'الكتب المنتهية', stats_avg_rating: 'التقييم المتوسط',
+    stats_sessions: 'جلسات القراءة', stats_streak: 'أيام متتالية',
+    stats_monthly: 'الكتب شهرياً', stats_genres: 'الأنواع المفضلة',
+    stats_activity: 'نشاط القراءة (آخر 90 يوماً)',
+    // Reviews
+    prof_tab_reviews: 'مراجعاتي', reviews_empty: 'لا توجد مراجعات. قيّم الكتب لرؤيتها هنا.',
+    your_review: 'مراجعتك', write_review: 'اكتب مراجعتك (اختياري)...',
+    save_review: 'حفظ المراجعة', review_saved: 'تم الحفظ!',
+    // Annotations
+    my_annotations: 'ملاحظاتي', highlights: 'التظليلات', bookmarks: 'الإشارات المرجعية',
+    export: 'تصدير', clear_all: 'مسح الكل', no_highlights: 'لا توجد تظليلات',
+    no_bookmarks: 'لا توجد إشارات مرجعية', add_note: 'إضافة ملاحظة',
+    edit_note: 'تعديل', delete: 'حذف', bookmark_added: 'تمت إضافة الإشارة المرجعية!',
+    text_highlighted: 'تم تظليل النص!', note_added: 'تمت إضافة الملاحظة!',
   }
 };
 

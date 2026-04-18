@@ -224,10 +224,10 @@
         <i class="fas fa-trophy"></i><span>Classement</span>
       </button>
       <button class="sidebar-btn" id="sb-rewards" onclick="showPage('rewards')">
-        <i class="fas fa-medal"></i><span>Récompenses</span>
+        <i class="fas fa-medal"></i><span data-i18n="nav_rewards">Récompenses</span>
       </button>
       <button class="sidebar-btn" id="sb-stats" onclick="showPage('stats')">
-        <i class="fas fa-chart-line"></i><span>Statistiques</span>
+        <i class="fas fa-chart-line"></i><span data-i18n="nav_stats">Statistiques</span>
       </button>
       <button class="sidebar-btn" id="sb-community" onclick="showPage('community')">
         <i class="fas fa-users"></i><span data-i18n="nav_community">Communauté</span>
@@ -244,8 +244,8 @@
     <button class="nav-btn" onclick="showPage('ai');closeMobileMenu()"><i class="fas fa-robot"></i> <span data-i18n="nav_ai">IA</span></button>
     <button class="nav-btn" onclick="showPage('history');closeMobileMenu()"><i class="fas fa-history"></i> <span data-i18n="nav_history">Historique</span></button>
     <button class="nav-btn" onclick="showPage('scoreboard');closeMobileMenu()"><i class="fas fa-trophy"></i> <span>Classement</span></button>
-    <button class="nav-btn" onclick="showPage('rewards');closeMobileMenu()"><i class="fas fa-medal"></i> <span>Récompenses</span></button>
-    <button class="nav-btn" onclick="showPage('stats');closeMobileMenu()"><i class="fas fa-chart-line"></i> <span>Statistiques</span></button>
+    <button class="nav-btn" onclick="showPage('rewards');closeMobileMenu()"><i class="fas fa-medal"></i> <span data-i18n="nav_rewards">Récompenses</span></button>
+    <button class="nav-btn" onclick="showPage('stats');closeMobileMenu()"><i class="fas fa-chart-line"></i> <span data-i18n="nav_stats">Statistiques</span></button>
     <button class="nav-btn" onclick="showPage('community');closeMobileMenu()"><i class="fas fa-users"></i> <span data-i18n="nav_community">Communauté</span></button>
   </div>
 
@@ -495,7 +495,7 @@
           <button class="ptab active" onclick="switchProfileTab('edit')"><i class="fas fa-edit"></i> <span data-i18n="prof_tab_edit">Modifier</span></button>
           <button class="ptab" onclick="switchProfileTab('favorites')"><i class="fas fa-heart"></i> <span data-i18n="prof_tab_fav">Favoris</span></button>
           <button class="ptab" onclick="switchProfileTab('later')"><i class="fas fa-clock"></i> <span data-i18n="prof_tab_later">À lire</span></button>
-          <button class="ptab" onclick="switchProfileTab('reviews')"><i class="fas fa-star"></i> <span>Mes avis</span></button>
+          <button class="ptab" onclick="switchProfileTab('reviews')"><i class="fas fa-star"></i> <span data-i18n="prof_tab_reviews">Mes avis</span></button>
           <button class="ptab" onclick="switchProfileTab('history')"><i class="fas fa-history"></i> <span data-i18n="prof_tab_hist">Historique</span></button>
         </div>
 
@@ -561,7 +561,7 @@
         <div class="ptab-content" id="ptab-reviews">
           <div id="profile-reviews-list"></div>
           <p class="empty-tab" id="reviews-empty" style="display:none">
-            <i class="fas fa-star"></i><br><span>Aucun avis. Notez des livres pour les voir ici.</span>
+            <i class="fas fa-star"></i><br><span data-i18n="reviews_empty">Aucun avis. Notez des livres pour les voir ici.</span>
           </p>
         </div>
 
@@ -613,7 +613,7 @@
   <!-- STATS PAGE -->
   <div id="page-stats" class="page">
     <div class="page-header">
-      <h2><i class="fas fa-chart-line" style="color:var(--teal)"></i> Statistiques de lecture</h2>
+      <h2><i class="fas fa-chart-line" style="color:var(--teal)"></i> <span data-i18n="nav_stats">Statistiques de lecture</span></h2>
     </div>
 
     <!-- OVERVIEW CARDS -->
@@ -622,47 +622,47 @@
         <div class="stat-card-icon" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">📚</div>
         <div class="stat-card-info">
           <div class="stat-card-value" id="stat-total-books">0</div>
-          <div class="stat-card-label">Livres terminés</div>
+          <div class="stat-card-label" data-i18n="stats_books_finished">Livres terminés</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-card-icon" style="background:linear-gradient(135deg,var(--pink),#c0392b)">⭐</div>
         <div class="stat-card-info">
           <div class="stat-card-value" id="stat-avg-rating">0</div>
-          <div class="stat-card-label">Note moyenne</div>
+          <div class="stat-card-label" data-i18n="stats_avg_rating">Note moyenne</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-card-icon" style="background:linear-gradient(135deg,var(--teal),#16a085)">📖</div>
         <div class="stat-card-info">
           <div class="stat-card-value" id="stat-sessions">0</div>
-          <div class="stat-card-label">Sessions de lecture</div>
+          <div class="stat-card-label" data-i18n="stats_sessions">Sessions de lecture</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-card-icon" style="background:linear-gradient(135deg,var(--orange),#d4ac0d)">🔥</div>
         <div class="stat-card-info">
           <div class="stat-card-value" id="stat-streak">0</div>
-          <div class="stat-card-label">Jours de suite</div>
+          <div class="stat-card-label" data-i18n="stats_streak">Jours de suite</div>
         </div>
       </div>
     </div>
 
     <!-- MONTHLY CHART -->
     <div class="stats-section">
-      <h3><i class="fas fa-calendar-alt"></i> Livres par mois</h3>
+      <h3><i class="fas fa-calendar-alt"></i> <span data-i18n="stats_monthly">Livres par mois</span></h3>
       <div class="stats-chart" id="monthly-chart"></div>
     </div>
 
     <!-- GENRE DISTRIBUTION -->
     <div class="stats-section">
-      <h3><i class="fas fa-book"></i> Genres préférés</h3>
+      <h3><i class="fas fa-book"></i> <span data-i18n="stats_genres">Genres préférés</span></h3>
       <div class="genre-bars" id="genre-bars"></div>
     </div>
 
     <!-- READING HEATMAP -->
     <div class="stats-section">
-      <h3><i class="fas fa-fire"></i> Activité de lecture (90 derniers jours)</h3>
+      <h3><i class="fas fa-fire"></i> <span data-i18n="stats_activity">Activité de lecture (90 derniers jours)</span></h3>
       <div class="reading-heatmap" id="reading-heatmap"></div>
     </div>
   </div>
