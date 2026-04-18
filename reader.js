@@ -104,18 +104,24 @@ window.addEventListener('DOMContentLoaded', async () => {
 // ===== GITHUB CDN — pre-downloaded books =====
 const GITHUB_CDN = 'https://raw.githubusercontent.com/novela-library/novela-books/main/';
 
-async function fetchFromCDN(gutId) {
-  if (!gutId) return null;
-  try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 8000);
-    const res = await fetch(GITHUB_CDN + gutId + '.txt', { signal: ctrl.signal });
-    clearTimeout(t);
-    if (res.ok) {
-      const text = await res.text();
-      if (text.length > 500) return text;
-    }
-  } catch(e) {}
+async function fetchFromCDN(gutId, localId) {
+  // Try all possible filenames in the CDN repo
+  const idsToTry = [];
+  if (gutId) idsToTry.push(gutId);
+  if (localId && localId !== gutId) idsToTry.push(localId);
+
+  for (const id of idsToTry) {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 6000);
+      const res = await fetch(GITHUB_CDN + id + '.txt', { signal: ctrl.signal });
+      clearTimeout(t);
+      if (res.ok) {
+        const text = await res.text();
+        if (text.length > 500) return text;
+      }
+    } catch(e) {}
+  }
   return null;
 }
 async function fetchWithProxy(targetUrl, timeoutMs = 8000) {
@@ -296,21 +302,15 @@ async function loadFullText() {
   }, 30000); // Reduced from 60s to 30s
 
   try {
-    // 3. Fast: check GitHub CDN first (pre-downloaded books)
-    if (book.gutId) {
-      console.log('Trying GitHub CDN for gutId:', book.gutId);
-      setLoaderMsg('📖 Loading from CDN...');
-      const cdnText = await fetchFromCDN(book.gutId);
-      if (cdnText) {
-        console.log('CDN success, text length:', cdnText.length);
-        try { localStorage.setItem(cacheKey, cdnText.substring(0, 2000000)); } catch(e) {}
-        chapters = splitIntoChapters(cdnText, book.title);
-        clearTimeout(quickTimeout);
-        clearTimeout(globalTimeout);
-        hideLoader(); renderToc(); renderChapter(); return;
-      } else {
-        console.log('CDN failed, trying server cache...');
-      }
+    // 3. Fast: check GitHub CDN first (pre-downloaded books) — try gutId AND bookId
+    setLoaderMsg('📖 Chargement depuis la bibliothèque...');
+    const cdnText = await fetchFromCDN(book.gutId, bookId);
+    if (cdnText) {
+      try { localStorage.setItem(cacheKey, cdnText.substring(0, 2000000)); } catch(e) {}
+      chapters = splitIntoChapters(cdnText, book.title);
+      clearTimeout(quickTimeout);
+      clearTimeout(globalTimeout);
+      hideLoader(); renderToc(); renderChapter(); return;
     }
 
     // 4. Check server cache (already downloaded) - with shorter timeout

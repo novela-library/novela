@@ -1,5 +1,5 @@
 // ===== VERSION CHECK & AUTO REFRESH =====
-const APP_VERSION = '1.1.1';
+const APP_VERSION = '1.1.2';
 const storedVersion = localStorage.getItem('novela_version');
 if (storedVersion && storedVersion !== APP_VERSION) {
   console.log('New version detected, clearing cache...');
