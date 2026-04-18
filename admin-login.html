@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Novela Admin — Connexion</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,-apple-system,sans-serif;background:#07080f;color:#eeeeff;min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 30% 50%,rgba(124,106,247,.1) 0%,transparent 60%),radial-gradient(ellipse at 70% 20%,rgba(244,114,182,.07) 0%,transparent 50%),#07080f}
+.login-box{background:#0d0e1c;border:1px solid rgba(124,106,247,.2);border-radius:24px;padding:48px 40px;width:100%;max-width:400px;box-shadow:0 12px 48px rgba(0,0,0,.6)}
+.logo{font-size:1.6rem;font-weight:900;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,#a78bfa,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{text-align:center;color:#8b8fa8;font-size:.85rem;margin-bottom:36px}
+.subtitle i{color:#a78bfa;margin-right:4px}
+label{display:block;font-size:.8rem;font-weight:600;color:#8b8fa8;margin-bottom:6px;margin-top:16px}
+input{width:100%;padding:13px 16px;background:#13152a;border:1.5px solid rgba(255,255,255,.07);border-radius:12px;color:#eeeeff;font-size:.95rem;outline:none;transition:border-color .2s}
+input:focus{border-color:#7c6af7}
+input::placeholder{color:#555878}
+.btn{width:100%;padding:13px;background:linear-gradient(135deg,#7c6af7,#5b4de0);color:#fff;border:none;border-radius:12px;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:24px;transition:all .2s;box-shadow:0 4px 16px rgba(124,106,247,.35)}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(124,106,247,.5)}
+.error{color:#f87171;font-size:.82rem;margin-top:10px;text-align:center;min-height:20px}
+.lock-icon{text-align:center;font-size:2.5rem;margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="login-box">
+  <div class="lock-icon"><img src="logo.png" style="width:64px;height:64px;object-fit:contain" onerror="this.outerHTML='🔐'"/></div>
+  <div class="logo">Novela Admin</div>
+  <p class="subtitle"><i class="fas fa-shield-alt"></i> Accès réservé aux administrateurs</p>
+  <label>Nom d'utilisateur</label>
+  <input type="text" id="username" placeholder="admin" onkeydown="if(event.key==='Enter')login()"/>
+  <label>Mot de passe</label>
+  <input type="password" id="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"/>
+  <p class="error" id="error-msg"></p>
+  <button class="btn" onclick="login()"><i class="fas fa-sign-in-alt"></i> Se connecter</button>
+</div>
+<script>
+async function login() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const err = document.getElementById('error-msg');
+  if (!username || !password) { err.textContent = 'Remplis tous les champs.'; return; }
+  try {
+    const res = await fetch('/api/admin-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) { err.textContent = data.error || 'Identifiants incorrects.'; return; }
+    // Store token and redirect
+    sessionStorage.setItem('admin_token', data.token);
+    window.location.href = '/admin.html?token=' + data.token;
+  } catch(e) {
+    err.textContent = 'Erreur de connexion au serveur.';
+  }
+}
+// If already logged in, redirect
+const token = sessionStorage.getItem('admin_token');
+if (token) window.location.href = '/admin.html?token=' + token;
+</script>
+</body>
+</html>

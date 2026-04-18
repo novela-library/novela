@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Novela — Admin</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#07080f;--bg2:#0d0e1c;--bg3:#13152a;--bg4:#1a1d35;--text:#eeeeff;--text2:#8b8fa8;--accent:#7c6af7;--accent3:#a78bfa;--success:#34d399;--error:#f87171;--radius:12px}
+body{font-family:Inter,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:32px}
+h1{font-size:1.8rem;font-weight:800;margin-bottom:8px;background:linear-gradient(135deg,var(--accent3),#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{color:var(--text2);margin-bottom:32px;font-size:.9rem}
+.stats{display:flex;gap:16px;margin-bottom:32px;flex-wrap:wrap}
+.stat-card{background:var(--bg2);border:1px solid rgba(124,106,247,.15);border-radius:var(--radius);padding:20px 28px;min-width:140px}
+.stat-card .num{font-size:2rem;font-weight:900;color:var(--accent3)}
+.stat-card .label{font-size:.8rem;color:var(--text2);margin-top:4px}
+.toolbar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.search-input{padding:10px 16px;background:var(--bg2);border:1.5px solid rgba(255,255,255,.07);border-radius:50px;color:var(--text);font-size:.88rem;outline:none;width:280px;transition:border-color .2s}
+.search-input:focus{border-color:var(--accent)}
+.search-input::placeholder{color:var(--text2)}
+.btn{padding:10px 20px;border-radius:var(--radius);border:none;cursor:pointer;font-size:.85rem;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#5b4de0);color:#fff;box-shadow:0 4px 12px rgba(124,106,247,.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,106,247,.4)}
+.btn-danger{background:rgba(248,113,113,.15);color:var(--error);border:1px solid rgba(248,113,113,.3)}
+.btn-danger:hover{background:rgba(248,113,113,.25)}
+.btn-edit{background:rgba(124,106,247,.15);color:var(--accent3);border:1px solid rgba(124,106,247,.3)}
+.btn-edit:hover{background:rgba(124,106,247,.25)}
+.btn-sm{padding:6px 12px;font-size:.78rem}
+table{width:100%;border-collapse:collapse;background:var(--bg2);border-radius:var(--radius);overflow:hidden;border:1px solid rgba(255,255,255,.05)}
+thead{background:var(--bg3)}
+th{padding:14px 16px;text-align:left;font-size:.8rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+td{padding:14px 16px;font-size:.88rem;border-top:1px solid rgba(255,255,255,.04)}
+tr:hover td{background:rgba(124,106,247,.04)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600}
+.badge-active{background:rgba(52,211,153,.15);color:var(--success)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid rgba(124,106,247,.2);border-radius:20px;padding:36px;width:100%;max-width:440px;position:relative}
+.modal h2{font-size:1.3rem;font-weight:800;margin-bottom:24px}
+.modal label{display:block;font-size:.82rem;color:var(--text2);margin-bottom:6px;margin-top:14px}
+.modal input{width:100%;padding:11px 14px;background:var(--bg3);border:1.5px solid rgba(255,255,255,.07);border-radius:var(--radius);color:var(--text);font-size:.9rem;outline:none;transition:border-color .2s}
+.modal input:focus{border-color:var(--accent)}
+.modal-actions{display:flex;gap:10px;margin-top:24px}
+.modal-close{position:absolute;top:14px;right:14px;background:var(--bg3);border:none;color:var(--text2);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:.85rem}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:50px;font-size:.85rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.toast.success{background:rgba(52,211,153,.2);color:var(--success);border:1px solid rgba(52,211,153,.3)}
+.toast.error{background:rgba(248,113,113,.2);color:var(--error);border:1px solid rgba(248,113,113,.3)}
+.empty{text-align:center;padding:60px;color:var(--text2)}
+.empty i{font-size:2.5rem;margin-bottom:12px;display:block;color:var(--text3)}
+</style>
+</head>
+<body>
+
+<h1><i class="fas fa-shield-alt" style="-webkit-text-fill-color:var(--accent3);margin-right:8px"></i><img src="logo.png" style="width:32px;height:32px;vertical-align:middle;margin-right:6px;object-fit:contain">Novela Admin</h1>
+<p class="subtitle">Gestion des comptes utilisateurs — <span id="server-status" style="color:var(--success)">● Connecté</span> &nbsp;|&nbsp; <button onclick="adminLogout()" style="background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.3);padding:4px 12px;border-radius:20px;cursor:pointer;font-size:.78rem;font-weight:600"><i class="fas fa-sign-out-alt"></i> Déconnexion</button></p>
+
+<div class="stats">
+  <div class="stat-card"><div class="num" id="total-users">—</div><div class="label">Utilisateurs</div></div>
+  <div class="stat-card"><div class="num" id="today-users">—</div><div class="label">Inscrits aujourd'hui</div></div>
+</div>
+
+<div class="toolbar">
+  <input type="text" class="search-input" id="search" placeholder="🔍 Rechercher par nom ou email..." oninput="filterTable()"/>
+  <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Ajouter un compte</button>
+  <button class="btn btn-edit" onclick="loadUsers()"><i class="fas fa-sync"></i> Actualiser</button>
+</div>
+
+<table id="users-table">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Nom</th>
+      <th>Email</th>
+      <th>Inscrit le</th>
+      <th>Statut</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="users-tbody">
+    <tr><td colspan="6" class="empty"><i class="fas fa-spinner fa-spin"></i><br>Chargement...</td></tr>
+  </tbody>
+</table>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('edit-modal')"><i class="fas fa-times"></i></button>
+    <h2 id="modal-title">Modifier le compte</h2>
+    <input type="hidden" id="edit-id"/>
+    <label>Nom complet</label>
+    <input type="text" id="edit-name" placeholder="Nom"/>
+    <label>Email</label>
+    <input type="email" id="edit-email" placeholder="Email"/>
+    <label>Nouveau mot de passe <span style="color:var(--text2);font-weight:400">(laisser vide pour ne pas changer)</span></label>
+    <input type="password" id="edit-pass" placeholder="Nouveau mot de passe"/>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveUser()"><i class="fas fa-save"></i> Sauvegarder</button>
+      <button class="btn btn-danger" onclick="closeModal('edit-modal')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('add-modal')"><i class="fas fa-times"></i></button>
+    <h2>Ajouter un compte</h2>
+    <label>Nom complet</label>
+    <input type="text" id="add-name" placeholder="Nom"/>
+    <label>Email</label>
+    <input type="email" id="add-email" placeholder="Email"/>
+    <label>Mot de passe</label>
+    <input type="password" id="add-pass" placeholder="Mot de passe"/>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="addUser()"><i class="fas fa-plus"></i> Créer</button>
+      <button class="btn btn-danger" onclick="closeModal('add-modal')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = window.location.origin + '/api';
+let allUsers = [];
+// Récupère le token depuis l'URL ou sessionStorage
+const urlToken = new URLSearchParams(window.location.search).get('token');
+const ADMIN_TOKEN = urlToken || sessionStorage.getItem('admin_token') || '';
+if (urlToken) sessionStorage.setItem('admin_token', urlToken);
+if (!ADMIN_TOKEN) window.location.href = '/admin.html'; // redirect to login
+
+async function apiFetch(endpoint, options = {}) {
+  return fetch(API + endpoint, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN, ...(options.headers || {}) }
+  });
+}
+
+async function loadUsers() {
+  try {
+    const res = await apiFetch('/users');
+    if (res.status === 401) { sessionStorage.removeItem('admin_token'); window.location.href = '/admin.html'; return; }
+    if (!res.ok) throw new Error();
+    allUsers = await res.json();
+    renderTable(allUsers);
+    document.getElementById('total-users').textContent = allUsers.length;
+    const today = new Date().toDateString();
+    const todayCount = allUsers.filter(u => new Date(u.createdAt).toDateString() === today).length;
+    document.getElementById('today-users').textContent = todayCount;
+    document.getElementById('server-status').textContent = '● Connecté';
+    document.getElementById('server-status').style.color = '#34d399';
+  } catch(e) {
+    document.getElementById('server-status').textContent = '● Serveur hors ligne';
+    document.getElementById('server-status').style.color = '#f87171';
+    document.getElementById('users-tbody').innerHTML = `<tr><td colspan="6" class="empty"><i class="fas fa-exclamation-triangle"></i><br>Serveur non démarré.<br><small style="margin-top:8px;display:block">Lance <code style="background:#1a1d35;padding:2px 8px;border-radius:4px">node server.js</code> dans le terminal</small></td></tr>`;
+  }
+}
+
+function renderTable(users) {
+  const tbody = document.getElementById('users-tbody');
+  if (!users.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty"><i class="fas fa-users"></i><br>Aucun utilisateur</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = users.map((u, i) => `
+    <tr>
+      <td style="color:var(--text2)">${i+1}</td>
+      <td><strong>${u.name}</strong></td>
+      <td style="color:var(--text2)">${u.email}</td>
+      <td style="color:var(--text2)">${u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR') : '—'}</td>
+      <td><span class="badge badge-active">Actif</span></td>
+      <td style="display:flex;gap:8px">
+        <button class="btn btn-edit btn-sm" onclick="openEditModal(${u.id}, '${u.name.replace(/'/g,"\\'")}', '${u.email}')">
+          <i class="fas fa-edit"></i> Modifier
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id}, '${u.name.replace(/'/g,"\\'")}')">
+          <i class="fas fa-trash"></i> Supprimer
+        </button>
+      </td>
+    </tr>`).join('');
+}
+
+function filterTable() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const filtered = allUsers.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+  renderTable(filtered);
+}
+
+function openEditModal(id, name, email) {
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-name').value = name;
+  document.getElementById('edit-email').value = email;
+  document.getElementById('edit-pass').value = '';
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function openAddModal() {
+  document.getElementById('add-name').value = '';
+  document.getElementById('add-email').value = '';
+  document.getElementById('add-pass').value = '';
+  document.getElementById('add-modal').classList.add('open');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+async function saveUser() {
+  const id = document.getElementById('edit-id').value;
+  const body = {
+    name: document.getElementById('edit-name').value.trim(),
+    email: document.getElementById('edit-email').value.trim()
+  };
+  const pass = document.getElementById('edit-pass').value;
+  if (pass) body.pass = pass;
+  const res = await apiFetch(`/users/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+  if (res.ok) { showToast('✅ Compte modifié !', 'success'); closeModal('edit-modal'); loadUsers(); }
+  else showToast('❌ Erreur', 'error');
+}
+
+async function addUser() {
+  const body = {
+    name: document.getElementById('add-name').value.trim(),
+    email: document.getElementById('add-email').value.trim(),
+    pass: document.getElementById('add-pass').value
+  };
+  if (!body.name || !body.email || !body.pass) { showToast('Remplis tous les champs', 'error'); return; }
+  const res = await apiFetch('/register', { method: 'POST', body: JSON.stringify(body) });
+  const data = await res.json();
+  if (res.ok) { showToast('✅ Compte créé !', 'success'); closeModal('add-modal'); loadUsers(); }
+  else showToast('❌ ' + (data.error || 'Erreur'), 'error');
+}
+
+async function deleteUser(id, name) {
+  if (!confirm(`Supprimer le compte de "${name}" ?`)) return;
+  const res = await apiFetch(`/users/${id}`, { method: 'DELETE' });
+  if (res.ok) { showToast('🗑️ Compte supprimé', 'success'); loadUsers(); }
+  else showToast('❌ Erreur', 'error');
+}
+
+async function adminLogout() {
+  await apiFetch('/admin-logout', { method: 'POST', body: JSON.stringify({ token: ADMIN_TOKEN }) }).catch(()=>{});
+  sessionStorage.removeItem('admin_token');
+  window.location.href = '/admin.html';
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+loadUsers();
+</script>
+</body>
+</html>
