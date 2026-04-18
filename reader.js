@@ -218,6 +218,8 @@ function localToGutBook(local) {
 }
 
 // ===== LOAD FULL TEXT =====
+let quickTimeout, globalTimeout; // Make timeouts accessible globally
+
 async function loadFullText() {
   console.log('loadFullText called for book:', { bookId, gutId: book.gutId, title: book.title });
   
@@ -251,9 +253,27 @@ async function loadFullText() {
   console.log('Showing loader, starting download...');
   showLoader('📖 Loading book...');
 
+  // Quick fallback - if nothing loads in 5 seconds, show a message
+  quickTimeout = setTimeout(() => {
+    console.warn('Quick timeout reached (5s), showing fallback message');
+    if (chapters.length === 0) {
+      hideLoader();
+      chapters = [{
+        title: 'Chargement en cours...',
+        content: `<p class="chapter-intro">${book.desc || ''}</p>
+          <p style="margin-top:16px;color:var(--text2)">Le livre est en cours de téléchargement. Cela peut prendre quelques secondes...</p>
+          <p style="margin-top:12px">
+            <button onclick="location.reload()" style="padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">🔄 Recharger la page</button>
+          </p>`
+      }];
+      renderToc(); renderChapter();
+    }
+  }, 5000);
+
   // Global timeout — reduced to 30s, auto-retry once
   let retryCount = 0;
-  const globalTimeout = setTimeout(async () => {
+  globalTimeout = setTimeout(async () => {
+    clearTimeout(quickTimeout);
     if (retryCount === 0) {
       retryCount++;
       setLoaderMsg('🔄 Retrying...');
@@ -278,13 +298,18 @@ async function loadFullText() {
   try {
     // 3. Fast: check GitHub CDN first (pre-downloaded books)
     if (book.gutId) {
+      console.log('Trying GitHub CDN for gutId:', book.gutId);
       setLoaderMsg('📖 Loading from CDN...');
       const cdnText = await fetchFromCDN(book.gutId);
       if (cdnText) {
+        console.log('CDN success, text length:', cdnText.length);
         try { localStorage.setItem(cacheKey, cdnText.substring(0, 2000000)); } catch(e) {}
         chapters = splitIntoChapters(cdnText, book.title);
+        clearTimeout(quickTimeout);
         clearTimeout(globalTimeout);
         hideLoader(); renderToc(); renderChapter(); return;
+      } else {
+        console.log('CDN failed, trying server cache...');
       }
     }
 
