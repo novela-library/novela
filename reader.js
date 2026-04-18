@@ -219,18 +219,22 @@ function localToGutBook(local) {
 
 // ===== LOAD FULL TEXT =====
 async function loadFullText() {
+  console.log('loadFullText called for book:', { bookId, gutId: book.gutId, title: book.title });
+  
   // Build a unique cache key using both gutId AND bookId AND title
   const cacheKey = 'fulltext_' + (book.gutId ? 'g' + book.gutId : 'b' + bookId + '_' + book.title.substring(0, 20).replace(/\s+/g, '_'));
   const cached = localStorage.getItem(cacheKey);
 
   // 1. Instant: pre-downloaded texts
   if (typeof BOOK_TEXTS !== 'undefined' && BOOK_TEXTS[bookId]) {
+    console.log('Loading from BOOK_TEXTS');
     chapters = splitIntoChapters(BOOK_TEXTS[bookId], book.title);
     renderToc(); renderChapter(); return;
   }
 
   // 2. Instant: localStorage cache
   if (cached) {
+    console.log('Loading from localStorage cache');
     try {
       const parsed = JSON.parse(cached);
       if (Array.isArray(parsed) && parsed[0]?.title && parsed[0]?.content) {
@@ -244,6 +248,7 @@ async function loadFullText() {
   const isArabic = /[\u0600-\u06FF]/.test(book.title + book.author) || book.lang === 'ar';
   const bookLang = book.lang || (isArabic ? 'ar' : 'en');
 
+  console.log('Showing loader, starting download...');
   showLoader('📖 Loading book...');
 
   // Global timeout — reduced to 30s, auto-retry once
@@ -711,8 +716,20 @@ function renderToc() {
 }
 
 function renderChapter() {
+  console.log('renderChapter called:', { 
+    currentChapter, 
+    totalChapters: chapters.length, 
+    hasChapter: !!chapters[currentChapter] 
+  });
+  
   const ch = chapters[currentChapter];
-  if (!ch) return;
+  if (!ch) {
+    console.error('No chapter found at index:', currentChapter);
+    return;
+  }
+  
+  console.log('Rendering chapter:', ch.title, 'Content length:', ch.content?.length);
+  
   document.getElementById('chapter-title').textContent = ch.title;
   document.getElementById('book-text').innerHTML = ch.content;
   document.getElementById('chapter-counter').textContent = `${currentChapter + 1} / ${chapters.length}`;
@@ -1629,9 +1646,17 @@ annotationStyles.textContent = `
 `;
 document.head.appendChild(annotationStyles);
 
-// Initialize annotations when chapter loads
-const originalRenderChapter = renderChapter;
+// Initialize annotations when chapter loads - wrap properly
+const _originalRenderChapter = renderChapter;
 renderChapter = function() {
-  originalRenderChapter();
-  loadAnnotations();
+  try {
+    _originalRenderChapter.call(this);
+    loadAnnotations();
+  } catch(e) {
+    console.error('Error in renderChapter:', e);
+    // Call original even if loadAnnotations fails
+    if (e.message.includes('loadAnnotations')) {
+      _originalRenderChapter.call(this);
+    }
+  }
 };
