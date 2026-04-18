@@ -48,7 +48,15 @@ async function readUsersDB() {
   if (!SUPABASE_KEY) return readUsersLocal();
   try {
     const r = await supaFetch('GET', 'users', null, '?select=*&order=created_at.asc');
-    if (r.status === 200 && Array.isArray(r.data)) { usersCache = r.data; return r.data; }
+    if (r.status === 200 && Array.isArray(r.data)) {
+      // Normalize Supabase fields to match local format
+      const normalized = r.data.map(u => ({
+        ...u,
+        createdAt: u.createdAt || u.created_at || new Date().toISOString()
+      }));
+      usersCache = normalized;
+      return normalized;
+    }
   } catch(e) { console.log('Supabase read error:', e.message); }
   return readUsersLocal();
 }
@@ -56,7 +64,24 @@ async function readUsersDB() {
 async function addUserDB(user) {
   if (!SUPABASE_KEY) { const u = readUsersLocal(); u.push(user); writeUsersLocal(u); return; }
   try {
-    await supaFetch('POST', 'users', { name: user.name, username: user.username || '', email: user.email, pass: user.pass, verified: true, twofa: false });
+    const r = await supaFetch('POST', 'users', {
+      name: user.name,
+      username: user.username || '',
+      email: user.email,
+      pass: user.pass,
+      verified: true,
+      twofa: false,
+      banned: false
+    });
+    console.log('Supabase add result:', r.status, JSON.stringify(r.data));
+    // Update local cache with Supabase-assigned ID
+    if (r.status === 201 && r.data && r.data[0]) {
+      const supaUser = r.data[0];
+      const users = readUsersLocal();
+      const idx = users.findIndex(u => u.email === user.email);
+      if (idx !== -1) { users[idx].id = supaUser.id; writeUsersLocal(users); }
+      usersCache = null; // force fresh read
+    }
   } catch(e) { console.log('Supabase add error:', e.message); }
 }
 
