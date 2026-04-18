@@ -1206,113 +1206,118 @@ window.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('mouseup', handleTextSelection);
 
 // ===== MOBILE: TAP ON SENTENCE =====
-let touchStartX = 0, touchStartY = 0, touchMoved = false;
+let touchStartX = 0, touchStartY = 0;
+let touchStartTime = 0;
+let tapPending = false;
 
 document.addEventListener('touchstart', (e) => {
   touchStartX = e.touches[0].clientX;
   touchStartY = e.touches[0].clientY;
-  touchMoved = false;
+  touchStartTime = Date.now();
+  tapPending = true;
 }, { passive: true });
 
-document.addEventListener('touchmove', () => {
-  touchMoved = true;
+document.addEventListener('touchmove', (e) => {
+  const dx = Math.abs(e.touches[0].clientX - touchStartX);
+  const dy = Math.abs(e.touches[0].clientY - touchStartY);
+  // Cancel tap if moved more than 12px (scrolling)
+  if (dx > 12 || dy > 12) tapPending = false;
 }, { passive: true });
 
 document.addEventListener('touchend', (e) => {
   if (!annotationMode) return;
-  if (touchMoved) return; // Was a scroll, not a tap
-  if (e.target.closest('button') || e.target.closest('.highlight-menu') || e.target.closest('.annotation-menu')) return;
+  if (!tapPending) return;
+  tapPending = false;
 
-  const dx = Math.abs(e.changedTouches[0].clientX - touchStartX);
-  const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
-  if (dx > 10 || dy > 10) return; // Moved too much = scroll
+  // Ignore long press (> 600ms) and very fast taps (< 50ms)
+  const duration = Date.now() - touchStartTime;
+  if (duration > 600 || duration < 50) return;
 
-  const target = e.target;
-  // Only trigger on text inside book-text
-  if (!target.closest('#book-text')) return;
+  // Ignore taps on UI elements
+  const t = e.target;
+  if (t.closest('button, .highlight-menu, .annotation-menu, #note-modal, .reader-topbar, .toc-panel, .settings-panel, .annotations-panel')) return;
+
+  // Only trigger inside book text
+  if (!t.closest('#book-text')) return;
 
   e.preventDefault();
 
-  // Get the tapped paragraph
-  const para = target.closest('p');
+  const touch = e.changedTouches[0];
+  const para = t.closest('p');
   if (!para) return;
 
-  // Get the sentence around the tap point
-  const sentence = getSentenceAtTouch(para, e.changedTouches[0]);
-  if (!sentence || sentence.text.length < 3) return;
+  const result = getSentenceAtTouch(para, touch);
+  if (!result || result.text.length < 3) return;
 
-  selectedText = sentence.text;
-  selectedRange = null; // Mobile doesn't use range
+  selectedText = result.text.trim();
+  selectedRange = null;
 
-  // Show menu at tap position
-  showHighlightMenu({
-    clientX: e.changedTouches[0].clientX,
-    clientY: e.changedTouches[0].clientY
-  });
+  showHighlightMenu({ clientX: touch.clientX, clientY: touch.clientY });
 }, { passive: false });
 
-// Get the sentence closest to the touch point within a paragraph
+// Get the sentence at the touch point
 function getSentenceAtTouch(para, touch) {
-  const text = para.textContent;
-  if (!text.trim()) return null;
+  const fullText = para.textContent;
+  if (!fullText.trim()) return null;
 
-  // Split into sentences
-  const sentenceRegex = /[^.!?؟،\n]+[.!?؟،]?/g;
-  const sentences = [];
-  let match;
-  while ((match = sentenceRegex.exec(text)) !== null) {
-    const s = match[0].trim();
-    if (s.length > 3) sentences.push(s);
-  }
-
-  if (sentences.length === 0) return { text: text.trim() };
-
-  // Find which sentence was tapped using a Range
+  // Step 1: find character position under finger using caretRangeFromPoint
+  let charPos = 0;
   try {
-    const range = document.caretRangeFromPoint
-      ? document.caretRangeFromPoint(touch.clientX, touch.clientY)
-      : document.caretPositionFromPoint
-        ? (() => {
-            const pos = document.caretPositionFromPoint(touch.clientX, touch.clientY);
-            const r = document.createRange();
-            r.setStart(pos.offsetNode, pos.offset);
-            r.collapse(true);
-            return r;
-          })()
-        : null;
-
-    if (!range) return { text: sentences[0] };
-
-    const offset = range.startOffset;
-    const nodeText = range.startContainer.textContent || '';
-
-    // Find position in full paragraph text
-    let charPos = 0;
-    const walker = document.createTreeWalker(para, NodeFilter.SHOW_TEXT);
-    let node;
-    while ((node = walker.nextNode())) {
-      if (node === range.startContainer) {
-        charPos += offset;
-        break;
+    let range = null;
+    if (document.caretRangeFromPoint) {
+      range = document.caretRangeFromPoint(touch.clientX, touch.clientY);
+    } else if (document.caretPositionFromPoint) {
+      const pos = document.caretPositionFromPoint(touch.clientX, touch.clientY);
+      if (pos) {
+        range = document.createRange();
+        range.setStart(pos.offsetNode, pos.offset);
       }
-      charPos += node.textContent.length;
     }
 
-    // Find which sentence contains this position
-    let pos = 0;
-    for (const s of sentences) {
-      const idx = text.indexOf(s, pos);
-      if (idx !== -1 && charPos >= idx && charPos <= idx + s.length) {
-        return { text: s.trim() };
+    if (range && range.startContainer) {
+      // Walk text nodes to find absolute char position
+      const walker = document.createTreeWalker(para, NodeFilter.SHOW_TEXT, null, false);
+      let node;
+      while ((node = walker.nextNode())) {
+        if (node === range.startContainer) {
+          charPos += range.startOffset;
+          break;
+        }
+        charPos += node.textContent.length;
       }
-      pos = idx + s.length;
     }
-
-    // Fallback: return closest sentence
-    return { text: sentences[Math.floor(sentences.length / 2)] };
   } catch(e) {
-    return { text: sentences[0] };
+    // Fallback: use middle of paragraph
+    charPos = Math.floor(fullText.length / 2);
   }
+
+  // Step 2: find sentence boundaries around charPos
+  // Sentence-ending chars: . ! ? ؟ ، \n
+  const endChars = /[.!?؟،\n]/;
+
+  // Find start of sentence (go backwards)
+  let start = charPos;
+  while (start > 0 && !endChars.test(fullText[start - 1])) start--;
+  // Skip leading whitespace
+  while (start < fullText.length && fullText[start] === ' ') start++;
+
+  // Find end of sentence (go forwards)
+  let end = charPos;
+  while (end < fullText.length && !endChars.test(fullText[end])) end++;
+  if (end < fullText.length) end++; // include the punctuation
+
+  const sentence = fullText.substring(start, end).trim();
+
+  // Sanity check: sentence should be reasonable length
+  if (sentence.length < 3) return { text: fullText.trim() };
+  if (sentence.length > 400) {
+    // Too long — just take ~100 chars around tap point
+    const s = Math.max(0, charPos - 50);
+    const e2 = Math.min(fullText.length, charPos + 50);
+    return { text: fullText.substring(s, e2).trim() };
+  }
+
+  return { text: sentence };
 }
 
 function handleTextSelection(e) {
@@ -1339,37 +1344,60 @@ function showHighlightMenu(e) {
     menu = document.createElement('div');
     menu.id = 'highlight-menu';
     menu.className = 'highlight-menu';
-    menu.innerHTML = `
-      <button onclick="highlightText('yellow'); event.stopPropagation();" style="background:#ffeb3b" title="Jaune">🟡</button>
-      <button onclick="highlightText('green'); event.stopPropagation();" style="background:#4caf50" title="Vert">🟢</button>
-      <button onclick="highlightText('pink'); event.stopPropagation();" style="background:#f472b6" title="Rose">🔴</button>
-      <button onclick="highlightText('blue'); event.stopPropagation();" style="background:#2196f3" title="Bleu">🔵</button>
-      <button onclick="addNote(); event.stopPropagation();" title="Ajouter une note">📝</button>
-      <button onclick="addBookmark(); event.stopPropagation();" title="Marque-page">🔖</button>
-      <button onclick="hideHighlightMenu(); event.stopPropagation();" style="background:#f87171" title="Fermer">✕</button>
-    `;
     document.body.appendChild(menu);
   }
-  
-  // Better positioning for mobile and desktop
-  const x = e.clientX || (e.changedTouches && e.changedTouches[0].clientX) || window.innerWidth / 2;
-  const y = e.clientY || (e.changedTouches && e.changedTouches[0].clientY) || 100;
-  
-  // Keep menu on screen
-  const menuWidth = 280;
-  const menuHeight = 50;
-  let left = Math.min(x - menuWidth / 2, window.innerWidth - menuWidth - 10);
-  left = Math.max(10, left);
-  let top = y - menuHeight - 10;
-  if (top < 10) top = y + 20;
-  
-  menu.style.left = left + 'px';
-  menu.style.top = top + 'px';
-  menu.style.display = 'flex';
-  
-  // Auto-hide after 10 seconds
-  clearTimeout(menu.hideTimeout);
-  menu.hideTimeout = setTimeout(() => hideHighlightMenu(), 10000);
+
+  menu.innerHTML = `
+    <div class="hl-menu-preview" id="hl-preview"></div>
+    <div class="hl-menu-colors">
+      <button onclick="highlightText('yellow'); event.stopPropagation();" class="hl-btn hl-yellow" title="Jaune"></button>
+      <button onclick="highlightText('green');  event.stopPropagation();" class="hl-btn hl-green"  title="Vert"></button>
+      <button onclick="highlightText('pink');   event.stopPropagation();" class="hl-btn hl-pink"   title="Rose"></button>
+      <button onclick="highlightText('blue');   event.stopPropagation();" class="hl-btn hl-blue"   title="Bleu"></button>
+    </div>
+    <div class="hl-menu-actions">
+      <button onclick="addNote(); event.stopPropagation();" class="hl-action-btn">📝 Note</button>
+      <button onclick="addBookmark(); event.stopPropagation();" class="hl-action-btn">🔖 Marque</button>
+      <button onclick="hideHighlightMenu(); event.stopPropagation();" class="hl-action-btn hl-close">✕</button>
+    </div>
+  `;
+
+  // Show preview of selected text
+  const preview = menu.querySelector('#hl-preview');
+  if (selectedText && preview) {
+    preview.textContent = '"' + selectedText.substring(0, 60) + (selectedText.length > 60 ? '...' : '') + '"';
+    preview.style.display = 'block';
+  } else if (preview) {
+    preview.style.display = 'none';
+  }
+
+  // Position: centered above tap point, always on screen
+  menu.style.display = 'block';
+  menu.style.visibility = 'hidden'; // measure first
+
+  // Force layout to get real dimensions
+  requestAnimationFrame(() => {
+    const mw = menu.offsetWidth || 260;
+    const mh = menu.offsetHeight || 120;
+
+    const x = e.clientX ?? window.innerWidth / 2;
+    const y = e.clientY ?? 200;
+
+    let left = x - mw / 2;
+    let top  = y - mh - 16;
+
+    // Keep on screen
+    left = Math.max(10, Math.min(left, window.innerWidth - mw - 10));
+    if (top < 60) top = y + 20; // flip below if too high
+
+    menu.style.left = left + 'px';
+    menu.style.top  = top  + 'px';
+    menu.style.visibility = 'visible';
+  });
+
+  // Auto-hide after 12s
+  clearTimeout(menu._hideTimer);
+  menu._hideTimer = setTimeout(() => hideHighlightMenu(), 12000);
 }
 
 function hideHighlightMenu() {

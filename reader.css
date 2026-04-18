@@ -292,40 +292,84 @@ body {
   background: var(--bg2);
   border: 1px solid rgba(167, 139, 250, 0.4);
   border-radius: 16px;
-  padding: 8px;
+  padding: 12px;
   display: none;
-  gap: 6px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-  backdrop-filter: blur(10px);
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.7);
+  backdrop-filter: blur(12px);
+  min-width: 240px;
+  max-width: 300px;
+  animation: fadeInScale 0.18s cubic-bezier(0.34,1.56,0.64,1);
 }
+
+/* Show as block (not flex) — inner layout handled by children */
+.highlight-menu[style*="block"] { display: flex !important; }
 
 @keyframes fadeInScale {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: scale(0.88) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-.highlight-menu button {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  border: 2px solid transparent;
-  cursor: pointer;
-  font-size: 1.1rem;
-  transition: all 0.2s;
+/* Preview of selected text */
+.hl-menu-preview {
+  font-size: 0.8rem;
+  color: var(--text2);
+  font-style: italic;
+  background: var(--bg3);
+  border-left: 3px solid var(--accent);
+  padding: 7px 10px;
+  border-radius: 0 8px 8px 0;
+  line-height: 1.4;
+  display: none;
+}
+
+/* Color buttons row */
+.hl-menu-colors {
   display: flex;
-  align-items: center;
+  gap: 10px;
   justify-content: center;
+}
+
+.hl-btn {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.15);
+  cursor: pointer;
+  transition: all 0.18s;
   flex-shrink: 0;
 }
+.hl-btn:hover, .hl-btn:active {
+  transform: scale(1.25);
+  border-color: rgba(255,255,255,0.6);
+}
+.hl-yellow { background: #fbbf24; }
+.hl-green  { background: #4ade80; }
+.hl-pink   { background: #f472b6; }
+.hl-blue   { background: #60a5fa; }
 
-.highlight-menu button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+/* Action buttons row */
+.hl-menu-actions {
+  display: flex;
+  gap: 6px;
 }
 
-.highlight-menu button:active {
-  transform: scale(0.92);
+.hl-action-btn {
+  flex: 1;
+  padding: 8px 6px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.18s;
+  white-space: nowrap;
 }
+.hl-action-btn:hover { background: rgba(167,139,250,0.15); border-color: var(--accent); }
+.hl-close { color: #f87171; border-color: rgba(248,113,113,0.3); }
+.hl-close:hover { background: rgba(248,113,113,0.15); border-color: #f87171; }
 
 /* Annotation toggle button */
 #toggle-annotation-btn {
