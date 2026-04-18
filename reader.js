@@ -118,11 +118,11 @@ async function fetchFromCDN(gutId) {
   } catch(e) {}
   return null;
 }
-async function fetchWithProxy(targetUrl, timeoutMs = 10000) {
+async function fetchWithProxy(targetUrl, timeoutMs = 8000) {
   // Try direct first (Gutenberg supports CORS on most browsers)
   try {
     const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 8000);
+    const t = setTimeout(() => ctrl.abort(), 5000); // Reduced from 8s to 5s
     const res = await fetch(targetUrl, { signal: ctrl.signal });
     clearTimeout(t);
     if (res.ok) {
@@ -131,10 +131,11 @@ async function fetchWithProxy(targetUrl, timeoutMs = 10000) {
     }
   } catch(e) {}
 
-  // Try 2 best proxies in parallel — fastest wins
+  // Try 3 best proxies in parallel — fastest wins
   const proxies = [
     `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
     `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
   ];
   try {
     const ctrl = new AbortController();
@@ -245,7 +246,7 @@ async function loadFullText() {
 
   showLoader('📖 Loading book...');
 
-  // Global timeout — auto-retry once, then show message
+  // Global timeout — reduced to 30s, auto-retry once
   let retryCount = 0;
   const globalTimeout = setTimeout(async () => {
     if (retryCount === 0) {
@@ -267,7 +268,7 @@ async function loadFullText() {
       }];
       renderToc(); renderChapter();
     }
-  }, 60000); // 60s before auto-retry
+  }, 30000); // Reduced from 60s to 30s
 
   try {
     // 3. Fast: check GitHub CDN first (pre-downloaded books)
@@ -282,10 +283,10 @@ async function loadFullText() {
       }
     }
 
-    // 4. Check server cache (already downloaded)
+    // 4. Check server cache (already downloaded) - with shorter timeout
     try {
       const ctrl = new AbortController();
-      setTimeout(() => ctrl.abort(), 3000);
+      setTimeout(() => ctrl.abort(), 2000); // Reduced from 3s to 2s
       const serverRes = await fetch(
         `${window.location.origin}/api/book-text/${bookId}?title=${encodeURIComponent(book.title)}&author=${encodeURIComponent(book.author)}&lang=${bookLang}`,
         { signal: ctrl.signal }
@@ -335,7 +336,7 @@ async function loadFullText() {
       }
       for (const u of urlsToTry) {
         try {
-          const text = await fetchWithProxy(u, 20000); // 20s for big books
+          const text = await fetchWithProxy(u, 12000); // Reduced from 20s to 12s
           if (text && text.length > 500) {
             try { localStorage.setItem(cacheKey, text.substring(0, 2000000)); } catch(e) {}
             chapters = splitIntoChapters(text, book.title);
