@@ -16,9 +16,127 @@
 </head>
 <body>
 
+<!-- ===== LANDING PAGE (visible avant connexion) ===== -->
+<div id="landing-page" class="landing-page">
+  <!-- NAV -->
+  <nav class="landing-nav">
+    <div class="landing-nav-logo">
+      <img src="logo.png" alt="Novela" style="width:28px;height:28px;object-fit:contain"/>
+      <span>Novela</span>
+    </div>
+    <div class="landing-nav-actions">
+      <button class="landing-btn-ghost" onclick="showAuth('login')">Connexion</button>
+      <button class="landing-btn-cta" onclick="showAuth('register')">Commencer gratuitement →</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="landing-hero">
+    <div class="landing-hero-bg">
+      <div class="landing-orb landing-orb1"></div>
+      <div class="landing-orb landing-orb2"></div>
+      <div class="landing-orb landing-orb3"></div>
+    </div>
+    <div class="landing-hero-content">
+      <div class="landing-badge">✨ Bibliothèque universelle gratuite</div>
+      <h1 class="landing-title">
+        Lisez le monde entier.<br>
+        <span class="landing-title-gradient">70 000+ livres.</span>
+      </h1>
+      <p class="landing-subtitle">
+        Des classiques aux romans modernes, en français, anglais, arabe et espagnol.<br>
+        Un assistant IA, des quiz, une communauté de lecteurs.
+      </p>
+      <div class="landing-hero-btns">
+        <button class="landing-btn-cta landing-btn-lg" onclick="showAuth('register')">
+          <i class="fas fa-book-open"></i> Commencer gratuitement
+        </button>
+        <button class="landing-btn-ghost landing-btn-lg" onclick="showAuth('login')">
+          <i class="fas fa-sign-in-alt"></i> Se connecter
+        </button>
+      </div>
+      <!-- Floating book covers -->
+      <div class="landing-books-float">
+        <div class="float-book fb1" style="background:linear-gradient(135deg,#2d3561,#1a1d35)"><span>1984</span></div>
+        <div class="float-book fb2" style="background:linear-gradient(135deg,#7b2d8b,#4a235a)"><span>⚡</span></div>
+        <div class="float-book fb3" style="background:linear-gradient(135deg,#c84b31,#8b1a1a)"><span>🌹</span></div>
+        <div class="float-book fb4" style="background:linear-gradient(135deg,#4a7c59,#2e7d32)"><span>💍</span></div>
+        <div class="float-book fb5" style="background:linear-gradient(135deg,#c4a35a,#784212)"><span>🏜️</span></div>
+        <div class="float-book fb6" style="background:linear-gradient(135deg,#1a237e,#0d1117)"><span>🌌</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="landing-stats">
+    <div class="landing-stat"><span class="landing-stat-num" data-target="70000">0</span><p>Livres disponibles</p></div>
+    <div class="landing-stat"><span class="landing-stat-num" data-target="50">0</span><p>Genres littéraires</p></div>
+    <div class="landing-stat"><span class="landing-stat-num" data-target="4">0</span><p>Langues</p></div>
+    <div class="landing-stat"><span class="landing-stat-num" data-target="100">0</span><p>% Gratuit</p></div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="landing-features">
+    <h2 class="landing-section-title">Tout ce dont vous avez besoin pour lire</h2>
+    <div class="landing-features-grid">
+      <div class="landing-feature-card">
+        <div class="lf-icon" style="background:linear-gradient(135deg,#7c6af7,#5b4de0)"><i class="fas fa-book-open"></i></div>
+        <h3>Bibliothèque universelle</h3>
+        <p>70 000+ livres en texte intégral depuis Project Gutenberg. Classiques, SF, romance, philosophie...</p>
+      </div>
+      <div class="landing-feature-card">
+        <div class="lf-icon" style="background:linear-gradient(135deg,#f472b6,#c0392b)"><i class="fas fa-robot"></i></div>
+        <h3>Assistant IA littéraire</h3>
+        <p>Posez vos questions sur n'importe quel livre. Analyses, recommandations, résumés — l'IA répond en secondes.</p>
+      </div>
+      <div class="landing-feature-card">
+        <div class="lf-icon" style="background:linear-gradient(135deg,#2dd4bf,#16a085)"><i class="fas fa-question-circle"></i></div>
+        <h3>Quiz personnalisés</h3>
+        <p>L'IA génère un quiz unique sur le livre de votre choix. Testez vos connaissances et grimpez au classement.</p>
+      </div>
+      <div class="landing-feature-card">
+        <div class="lf-icon" style="background:linear-gradient(135deg,#fb923c,#d4ac0d)"><i class="fas fa-trophy"></i></div>
+        <h3>Défis & Badges</h3>
+        <p>Débloquez des badges, maintenez votre streak de lecture, et comparez-vous aux autres lecteurs.</p>
+      </div>
+      <div class="landing-feature-card">
+        <div class="lf-icon" style="background:linear-gradient(135deg,#a78bfa,#7c6af7)"><i class="fas fa-users"></i></div>
+        <h3>Communauté</h3>
+        <p>Rejoignez des groupes de lecture, discutez de vos livres préférés avec d'autres passionnés.</p>
+      </div>
+      <div class="landing-feature-card">
+        <div class="lf-icon" style="background:linear-gradient(135deg,#34d399,#1e8449)"><i class="fas fa-globe"></i></div>
+        <h3>Multilingue</h3>
+        <p>Lisez en français, anglais, arabe ou espagnol. L'interface et l'IA s'adaptent à votre langue.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="landing-cta-section">
+    <div class="landing-cta-box">
+      <h2>Prêt à lire ?</h2>
+      <p>Rejoignez des milliers de lecteurs. C'est gratuit, pour toujours.</p>
+      <button class="landing-btn-cta landing-btn-lg" onclick="showAuth('register')">
+        Créer mon compte gratuitement <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="landing-footer">
+    <div class="landing-nav-logo" style="justify-content:center">
+      <img src="logo.png" alt="Novela" style="width:20px;height:20px;object-fit:contain"/>
+      <span>Novela</span>
+    </div>
+    <p style="color:var(--text3);font-size:.78rem;margin-top:8px">Bibliothèque universelle gratuite • Propulsé par Project Gutenberg & Groq AI</p>
+  </footer>
+</div>
+
 <!-- AUTH OVERLAY -->
-<div id="auth-overlay" class="overlay active">
+<div id="auth-overlay" class="overlay">
   <div class="auth-box">
+    <button class="auth-back-btn" onclick="showLanding()" title="Retour"><i class="fas fa-arrow-left"></i></button>
     <div class="auth-logo"><img src="logo.png" class="site-logo-img" alt="Novela"/> Novela</div>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchTab('login')">Connexion</button>
@@ -105,6 +223,9 @@
       <button class="sidebar-btn" id="sb-scoreboard" onclick="showPage('scoreboard')">
         <i class="fas fa-trophy"></i><span>Classement</span>
       </button>
+      <button class="sidebar-btn" id="sb-rewards" onclick="showPage('rewards')">
+        <i class="fas fa-medal"></i><span>Récompenses</span>
+      </button>
       <button class="sidebar-btn" id="sb-community" onclick="showPage('community')">
         <i class="fas fa-users"></i><span data-i18n="nav_community">Communauté</span>
       </button>
@@ -120,6 +241,7 @@
     <button class="nav-btn" onclick="showPage('ai');closeMobileMenu()"><i class="fas fa-robot"></i> <span data-i18n="nav_ai">IA</span></button>
     <button class="nav-btn" onclick="showPage('history');closeMobileMenu()"><i class="fas fa-history"></i> <span data-i18n="nav_history">Historique</span></button>
     <button class="nav-btn" onclick="showPage('scoreboard');closeMobileMenu()"><i class="fas fa-trophy"></i> <span>Classement</span></button>
+    <button class="nav-btn" onclick="showPage('rewards');closeMobileMenu()"><i class="fas fa-medal"></i> <span>Récompenses</span></button>
     <button class="nav-btn" onclick="showPage('community');closeMobileMenu()"><i class="fas fa-users"></i> <span data-i18n="nav_community">Communauté</span></button>
   </div>
 
@@ -156,16 +278,18 @@
       </div>
     </div>
 
-    <!-- STREAK + BADGES -->
+    <!-- STREAK (gardé, juste le streak sans badges) -->
     <div class="achievements-bar" id="achievements-bar">
-      <div class="streak-card" id="streak-card">
+      <div class="streak-card" id="streak-card" onclick="showPage('rewards')">
         <div class="streak-fire">🔥</div>
         <div>
           <div class="streak-num" id="streak-num">0</div>
           <div class="streak-label">jours de suite</div>
         </div>
       </div>
-      <div class="badges-row" id="badges-row"></div>
+      <button class="btn-secondary" style="font-size:.8rem;padding:7px 16px;margin-left:12px" onclick="showPage('rewards')">
+        <i class="fas fa-medal"></i> Mes récompenses
+      </button>
     </div>
 
     <!-- RECOMMENDED -->
@@ -436,6 +560,40 @@
           </p>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- REWARDS PAGE -->
+  <div id="page-rewards" class="page">
+    <div class="page-header">
+      <h2><i class="fas fa-medal" style="color:var(--accent3)"></i> Récompenses</h2>
+    </div>
+
+    <!-- STREAK CARD -->
+    <div class="rewards-streak-banner" id="rewards-streak-banner">
+      <div class="rsb-fire">🔥</div>
+      <div class="rsb-info">
+        <div class="rsb-num" id="rewards-streak-num">0</div>
+        <div class="rsb-label">jours de lecture consécutifs</div>
+      </div>
+      <div class="rsb-tip">Lisez chaque jour pour maintenir votre streak !</div>
+    </div>
+
+    <!-- DÉFIS -->
+    <div style="margin-bottom:36px">
+      <div class="section-header">
+        <h2><i class="fas fa-fire" style="color:var(--orange)"></i> Défis en cours</h2>
+      </div>
+      <div class="challenges-grid" id="rewards-challenges-grid"></div>
+    </div>
+
+    <!-- BADGES -->
+    <div>
+      <div class="section-header">
+        <h2><i class="fas fa-award" style="color:var(--accent3)"></i> Badges</h2>
+        <span id="rewards-badges-count" style="font-size:.82rem;color:var(--text2)"></span>
+      </div>
+      <div class="rewards-badges-grid" id="rewards-badges-grid"></div>
     </div>
   </div>
 

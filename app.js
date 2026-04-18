@@ -763,6 +763,7 @@ async function login() {
 function finishLogin(user) {
   currentUser = user;
   localStorage.setItem('biblio_session', JSON.stringify(user));
+  hideLanding();
   document.getElementById('auth-overlay').classList.remove('active');
   document.getElementById('app').style.display = 'block';
   document.getElementById('nav-username').textContent = user.name;
@@ -864,7 +865,8 @@ function logout() {
   currentUser = null;
   localStorage.removeItem('biblio_session');
   document.getElementById('app').style.display = 'none';
-  document.getElementById('auth-overlay').classList.add('active');
+  document.getElementById('auth-overlay').classList.remove('active');
+  showLanding();
 }
 
 function checkSession() {
@@ -872,12 +874,202 @@ function checkSession() {
   const s = localStorage.getItem('biblio_session');
   if (s) {
     currentUser = JSON.parse(s);
+    hideLanding();
     document.getElementById('auth-overlay').classList.remove('active');
     document.getElementById('app').style.display = 'block';
     document.getElementById('nav-username').textContent = currentUser.name;
     loadApiKey().then(() => initApp());
+  } else {
+    showLanding();
   }
 }
+
+// ===== LANDING PAGE =====
+function showLanding() {
+  const lp = document.getElementById('landing-page');
+  if (lp) {
+    lp.style.display = 'block';
+    document.getElementById('auth-overlay').classList.remove('active');
+    document.getElementById('app').style.display = 'none';
+    // Animate counters
+    setTimeout(animateLandingCounters, 400);
+  }
+}
+
+function hideLanding() {
+  const lp = document.getElementById('landing-page');
+  if (lp) lp.style.display = 'none';
+}
+
+function showAuth(tab) {
+  hideLanding();
+  const overlay = document.getElementById('auth-overlay');
+  overlay.classList.add('active');
+  switchTab(tab || 'login');
+}
+
+function animateLandingCounters() {
+  document.querySelectorAll('.landing-stat-num').forEach(el => {
+    const target = parseInt(el.dataset.target);
+    const duration = 1800;
+    const step = target / (duration / 16);
+    let current = 0;
+    const timer = setInterval(() => {
+      current = Math.min(current + step, target);
+      if (target >= 1000) {
+        el.textContent = Math.floor(current).toLocaleString('fr-FR') + '+';
+      } else {
+        el.textContent = Math.floor(current);
+      }
+      if (current >= target) clearInterval(timer);
+    }, 16);
+  });
+}
+
+// ===== EFFET 3D TILT SUR LES CARTES =====
+function init3DTilt() {
+  document.querySelectorAll('.book-card').forEach(card => {
+    if (card.dataset.tiltInit) return;
+    card.dataset.tiltInit = '1';
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      const rotX = ((y - cy) / cy) * -8;
+      const rotY = ((x - cx) / cx) * 8;
+      card.style.transform = `perspective(600px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-5px) scale(1.02)`;
+      card.style.boxShadow = `${-rotY * 2}px ${rotX * 2}px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(124,106,247,.25)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+      card.style.boxShadow = '';
+    });
+  });
+}
+
+// Appeler init3DTilt après chaque rendu de grille
+const _origInit3D = window.init3DTilt;
+document.addEventListener('click', () => setTimeout(init3DTilt, 300));
+
+// ===== BADGES & DÉFIS =====
+const BADGES_DEF = [
+  { id:'first_book',  emoji:'📖', name:'Premier livre',    desc:'Lire 1 livre',          condition: u => (u.booksRead||0) >= 1 },
+  { id:'bookworm5',   emoji:'🐛', name:'Bookworm',         desc:'Lire 5 livres',          condition: u => (u.booksRead||0) >= 5 },
+  { id:'reader10',    emoji:'📚', name:'Grand lecteur',    desc:'Lire 10 livres',         condition: u => (u.booksRead||0) >= 10 },
+  { id:'quiz_first',  emoji:'🧠', name:'Premier quiz',     desc:'Compléter 1 quiz',       condition: u => (u.quizDone||0) >= 1 },
+  { id:'quiz_ace',    emoji:'🏆', name:'Quiz Master',      desc:'Score 100% à un quiz',   condition: u => (u.bestQuiz||0) >= 100 },
+  { id:'streak3',     emoji:'🔥', name:'En feu',           desc:'3 jours de suite',       condition: u => (u.streak||0) >= 3 },
+  { id:'streak7',     emoji:'⚡', name:'Semaine parfaite', desc:'7 jours de suite',       condition: u => (u.streak||0) >= 7 },
+  { id:'fav5',        emoji:'❤️', name:'Collectionneur',   desc:'5 livres en favoris',    condition: u => (u.favCount||0) >= 5 },
+  { id:'community',   emoji:'💬', name:'Social',           desc:'Envoyer 1 message',      condition: u => (u.msgSent||0) >= 1 },
+  { id:'polyglot',    emoji:'🌍', name:'Polyglotte',       desc:'Lire dans 2 langues',    condition: u => (u.langsRead||0) >= 2 },
+];
+
+const CHALLENGES_DEF = [
+  { id:'read_month',  emoji:'📅', name:'Lecteur du mois',  desc:'Lire 5 livres ce mois',  target: 5,  key:'booksRead',  color:'linear-gradient(135deg,#7c6af7,#5b4de0)' },
+  { id:'quiz_week',   emoji:'🧩', name:'Quiz de la semaine', desc:'Faire 3 quiz',          target: 3,  key:'quizDone',   color:'linear-gradient(135deg,#2dd4bf,#16a085)' },
+  { id:'streak_goal', emoji:'🔥', name:'Streak 7 jours',   desc:'7 jours consécutifs',    target: 7,  key:'streak',     color:'linear-gradient(135deg,#fb923c,#d4ac0d)' },
+  { id:'fav_collect', emoji:'❤️', name:'Collectionneur',   desc:'Ajouter 10 favoris',     target: 10, key:'favCount',   color:'linear-gradient(135deg,#f472b6,#c0392b)' },
+];
+
+function getUserStats() {
+  if (!currentUser) return {};
+  const key = 'novela_stats_' + currentUser.email;
+  return JSON.parse(localStorage.getItem(key) || '{}');
+}
+
+function saveUserStats(stats) {
+  if (!currentUser) return;
+  const key = 'novela_stats_' + currentUser.email;
+  localStorage.setItem(key, JSON.stringify(stats));
+}
+
+function incrementStat(statKey, amount = 1) {
+  const stats = getUserStats();
+  stats[statKey] = (stats[statKey] || 0) + amount;
+  saveUserStats(stats);
+  checkNewBadges(stats);
+}
+
+function checkNewBadges(stats) {
+  const earned = JSON.parse(localStorage.getItem('novela_badges_' + (currentUser?.email||'')) || '[]');
+  BADGES_DEF.forEach(b => {
+    if (!earned.includes(b.id) && b.condition(stats)) {
+      earned.push(b.id);
+      localStorage.setItem('novela_badges_' + currentUser.email, JSON.stringify(earned));
+      showBadgeToast(b);
+    }
+  });
+}
+
+function showBadgeToast(badge) {
+  const toast = document.createElement('div');
+  toast.className = 'badge-toast';
+  toast.innerHTML = `<span style="font-size:1.4rem">${badge.emoji}</span><div><div style="font-weight:700;font-size:.88rem">Badge débloqué !</div><div style="font-size:.78rem;color:var(--text2)">${badge.name}</div></div>`;
+  toast.style.cssText = `position:fixed;bottom:80px;right:20px;z-index:9999;background:var(--bg2);border:1px solid rgba(124,106,247,.3);border-radius:14px;padding:12px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:slideInRight .4s ease;`;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.animation = 'slideOutRight .3s ease forwards'; setTimeout(() => toast.remove(), 300); }, 3500);
+}
+
+// ===== PAGE RÉCOMPENSES =====
+function renderRewardsPage() {
+  const stats = getUserStats();
+  const earned = JSON.parse(localStorage.getItem('novela_badges_' + (currentUser?.email||'')) || '[]');
+
+  // Streak
+  const streakNum = document.getElementById('rewards-streak-num');
+  if (streakNum) streakNum.textContent = stats.streak || 0;
+
+  // Défis
+  const challengesGrid = document.getElementById('rewards-challenges-grid');
+  if (challengesGrid) {
+    challengesGrid.innerHTML = CHALLENGES_DEF.map(c => {
+      const val = Math.min(stats[c.key] || 0, c.target);
+      const pct = Math.round((val / c.target) * 100);
+      const done = pct >= 100;
+      return `<div class="challenge-card ${done ? 'completed' : ''}">
+        <div class="challenge-icon" style="background:${c.color}">${c.emoji}</div>
+        <div class="challenge-info">
+          <div class="challenge-name">${c.name}</div>
+          <div class="challenge-desc">${c.desc}</div>
+          <div class="challenge-progress-wrap">
+            <div class="challenge-progress-fill" style="width:${pct}%;background:${c.color}"></div>
+          </div>
+          <div class="challenge-pct">${val} / ${c.target}</div>
+        </div>
+        ${done ? '<div class="challenge-check">✓</div>' : ''}
+      </div>`;
+    }).join('');
+  }
+
+  // Badges
+  const badgesGrid = document.getElementById('rewards-badges-grid');
+  const badgesCount = document.getElementById('rewards-badges-count');
+  if (badgesGrid) {
+    badgesGrid.innerHTML = BADGES_DEF.map(b => {
+      const unlocked = earned.includes(b.id);
+      return `<div class="rewards-badge-card ${unlocked ? 'unlocked' : 'locked'}">
+        ${unlocked ? '<div class="rewards-badge-check">✓</div>' : ''}
+        <span class="rewards-badge-emoji">${b.emoji}</span>
+        <span class="rewards-badge-name">${b.name}</span>
+        <span class="rewards-badge-desc">${b.desc}</span>
+      </div>`;
+    }).join('');
+  }
+  if (badgesCount) {
+    badgesCount.textContent = `${earned.length} / ${BADGES_DEF.length} débloqués`;
+  }
+}
+
+// Ajouter badge toast animation CSS
+const badgeStyle = document.createElement('style');
+badgeStyle.textContent = `
+@keyframes slideInRight{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideOutRight{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(60px)}}
+`;
+document.head.appendChild(badgeStyle);
 
 // ===== MOBILE MENU =====
 function toggleMobileMenu() {
@@ -909,9 +1101,9 @@ function showPage(id) {
   if (id === 'profile') initProfile();
   if (id === 'community') initCommunity();
   if (id === 'scoreboard') renderScoreboard();
-  if (id === 'home') renderHomeExtras();
+  if (id === 'rewards') renderRewardsPage();
+  if (id === 'home') { renderHomeExtras(); }
   if (id === 'library' && document.getElementById('library-books').children.length <= BOOKS.length) {
-    // Only fetch Gutenberg if not already loaded
     setTimeout(() => fetchGutenbergPage(true), 100);
   }
   if (id === 'quiz') {
@@ -919,7 +1111,7 @@ function showPage(id) {
     if (grid && grid.children.length === 0) initQuizBooks();
   }
   // Update sidebar active state
-  ['home','library','quiz','ai','history','scoreboard','community'].forEach(p => {
+  ['home','library','quiz','ai','history','scoreboard','rewards','community'].forEach(p => {
     const el = document.getElementById('sb-' + p);
     if (el) el.classList.toggle('active', p === id);
   });
@@ -928,6 +1120,8 @@ function showPage(id) {
     const el = document.getElementById('mob-' + p);
     if (el) el.classList.toggle('active', p === id);
   });
+  // Init 3D tilt on new cards
+  setTimeout(init3DTilt, 300);
 }
 
 // ===== BOOKS =====
@@ -1183,6 +1377,30 @@ function closeBookModal() { document.getElementById('book-modal').classList.remo
 function closeModal(e) { if (e.target.id === 'book-modal') closeBookModal(); }
 
 function openReader(id, gutId) {
+  // Incrémenter les stats de lecture
+  if (currentUser) {
+    const stats = getUserStats();
+    const histKey = 'reading_history_' + currentUser.email;
+    const hist = JSON.parse(localStorage.getItem(histKey) || '{}');
+    const bookKey = gutId ? 'g' + gutId : 'b' + id;
+    if (!hist[bookKey]) {
+      // Nouveau livre — incrémenter booksRead
+      incrementStat('booksRead');
+      // Détecter la langue pour polyglot badge
+      const b = BOOKS.find(x => x.id === id);
+      if (b && b.lang) {
+        const langs = JSON.parse(localStorage.getItem('novela_langs_' + currentUser.email) || '[]');
+        if (!langs.includes(b.lang)) {
+          langs.push(b.lang);
+          localStorage.setItem('novela_langs_' + currentUser.email, JSON.stringify(langs));
+          const s = getUserStats();
+          s.langsRead = langs.length;
+          saveUserStats(s);
+          checkNewBadges(s);
+        }
+      }
+    }
+  }
   if (gutId) window.location.href = 'reader.html?gid=' + gutId;
   else window.location.href = 'reader.html?id=' + id;
 }
@@ -1641,6 +1859,14 @@ function showResult() {
   document.getElementById('result-title').textContent = msgs[lvl];
   document.getElementById('result-score').textContent = `${score} / ${questions.length} (${pct}%)`;
   document.getElementById('result-msg').textContent = quizState.book ? `Quiz sur : ${quizState.book.title}` : `Catégorie : ${quizState.cat}`;
+  // Incrémenter stats quiz
+  incrementStat('quizDone');
+  const stats = getUserStats();
+  if (pct > (stats.bestQuiz || 0)) {
+    stats.bestQuiz = pct;
+    saveUserStats(stats);
+    checkNewBadges(stats);
+  }
   // Save score to scoreboard
   const bookTitle = quizState.book ? quizState.book.title : quizState.cat;
   saveQuizScore(score, questions.length, bookTitle);
@@ -1751,10 +1977,10 @@ function initApp() {
   setTimeout(() => addMessage(greeting, 'ai'), 300);
 
   // Render home extras after a short delay
-  setTimeout(() => renderHomeExtras(), 200);
-
-  // Load Gutenberg only when user goes to library page — NOT on startup
-  // initQuizBooks() only when user opens quiz page — lazy loaded in showPage()
+  setTimeout(() => {
+    renderHomeExtras();
+    init3DTilt();
+  }, 200);
 
   // Check if returning from reader — go to library page
   const urlParams = new URLSearchParams(window.location.search);
@@ -2733,6 +2959,8 @@ function sendGroupMessage() {
   if (idx !== -1) { groups[idx].lastMsg = text; saveGroups(groups); }
   renderGroupMessages(activeGroupId);
   renderGroupsList(allGroups);
+  // Stats badge
+  incrementStat('msgSent');
 }
 
 function toggleJoinGroup() {

@@ -349,18 +349,29 @@ function generateCode() {
 // =====================================================
 // ===== COMPTES ADMIN — MODIFIE ICI UNIQUEMENT =====
 // =====================================================
-// Pour ajouter un admin : ajoute une ligne { username: '...', password: '...' }
-// Pour supprimer un admin : supprime la ligne
-// Pour changer le mot de passe : modifie le champ password
 const ADMIN_ACCOUNTS = [
   { username: 'admin', password: 'novela2024' },
-  { username: 'mathieu', password: 'mathNSI' },  // <-- CHANGE CE MOT DE PASSE
-  // { username: 'moi', password: 'monmotdepasse' }, // <-- décommente pour ajouter un 2e admin
+  { username: 'mathieu', password: 'mathNSI' },
 ];
 // =====================================================
 
-// Sessions admin en mémoire (reset au redémarrage du serveur)
-const adminSessions = new Set();
+// Token secret fixe — ne change pas au redémarrage
+// Utilise ADMIN_SECRET en variable d'env sur Render, sinon fallback local
+const ADMIN_SECRET = process.env.ADMIN_SECRET || 'novela_admin_secret_2024';
+
+function generateAdminToken(username) {
+  // Token = base64(username:secret) — valide même après restart
+  return Buffer.from(username + ':' + ADMIN_SECRET).toString('base64');
+}
+
+function validateAdminToken(token) {
+  if (!token) return false;
+  try {
+    const decoded = Buffer.from(token, 'base64').toString('utf8');
+    const [username, secret] = decoded.split(':');
+    return secret === ADMIN_SECRET && ADMIN_ACCOUNTS.some(a => a.username === username);
+  } catch(e) { return false; }
+}
 
 // ===== HELPERS =====
 function sendJSON(res, status, data) {
@@ -412,7 +423,7 @@ const server = http.createServer(async (req, res) => {
   // Protect admin.html — redirect to admin-login if no session
   if (pathname === '/admin.html' || pathname === '/admin') {
     const token = parsed.query.token;
-    if (!token || !adminSessions.has(token)) {
+    if (!validateAdminToken(token)) {
       serveFile(res, path.join(__dirname, 'admin-login.html'), 'text/html');
       return;
     }
@@ -494,16 +505,14 @@ const server = http.createServer(async (req, res) => {
     const { username, password } = body;
     const valid = ADMIN_ACCOUNTS.find(a => a.username === username && a.password === password);
     if (!valid) { sendJSON(res, 401, { error: 'Identifiants incorrects' }); return; }
-    const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
-    adminSessions.add(token);
+    const token = generateAdminToken(username);
     sendJSON(res, 200, { success: true, token });
     return;
   }
 
   // POST /api/admin-logout
   if (pathname === '/api/admin-logout' && req.method === 'POST') {
-    const body = await getBody(req);
-    adminSessions.delete(body.token);
+    // Token est stateless — pas besoin de supprimer côté serveur
     sendJSON(res, 200, { success: true });
     return;
   }
@@ -511,7 +520,7 @@ const server = http.createServer(async (req, res) => {
   // Protect /api/users routes — require valid admin token
   if (pathname.startsWith('/api/users')) {
     const token = req.headers['x-admin-token'];
-    if (!token || !adminSessions.has(token)) {
+    if (!validateAdminToken(token)) {
       sendJSON(res, 401, { error: 'Non autorisé' }); return;
     }
   }

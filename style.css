@@ -543,3 +543,181 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   .books-carousel .book-card{min-width:130px;max-width:130px}
   .section-header h2{font-size:1rem}
 }
+
+/* ===================================================
+   LANDING PAGE
+   =================================================== */
+.landing-page{min-height:100vh;background:var(--bg);overflow-x:hidden}
+
+/* NAV */
+.landing-nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:64px;position:sticky;top:0;z-index:200;background:rgba(7,8,15,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.05)}
+.landing-nav-logo{display:flex;align-items:center;gap:10px;font-size:1.2rem;font-weight:800;background:linear-gradient(135deg,var(--accent3),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.landing-nav-actions{display:flex;align-items:center;gap:10px}
+.landing-btn-ghost{padding:8px 18px;border:1.5px solid rgba(255,255,255,.12);border-radius:50px;background:transparent;color:var(--text2);cursor:pointer;font-size:.88rem;font-weight:500;transition:all .2s}
+.landing-btn-ghost:hover{border-color:var(--accent3);color:var(--accent3)}
+.landing-btn-cta{padding:10px 22px;border:none;border-radius:50px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;cursor:pointer;font-size:.88rem;font-weight:700;transition:all .2s;box-shadow:0 4px 16px rgba(124,106,247,.4)}
+.landing-btn-cta:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(124,106,247,.6)}
+.landing-btn-lg{padding:14px 32px;font-size:1rem}
+
+/* HERO */
+.landing-hero{position:relative;min-height:90vh;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:60px 40px}
+.landing-hero-bg{position:absolute;inset:0;pointer-events:none}
+.landing-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35}
+.landing-orb1{width:600px;height:600px;background:radial-gradient(circle,rgba(124,106,247,.6),transparent 70%);top:-200px;left:-100px;animation:orbFloat1 8s ease-in-out infinite}
+.landing-orb2{width:400px;height:400px;background:radial-gradient(circle,rgba(244,114,182,.5),transparent 70%);top:100px;right:-80px;animation:orbFloat2 10s ease-in-out infinite}
+.landing-orb3{width:300px;height:300px;background:radial-gradient(circle,rgba(45,212,191,.4),transparent 70%);bottom:-50px;left:40%;animation:orbFloat3 7s ease-in-out infinite}
+@keyframes orbFloat1{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-40px)}}
+@keyframes orbFloat2{0%,100%{transform:translate(0,0)}50%{transform:translate(-20px,30px)}}
+@keyframes orbFloat3{0%,100%{transform:translate(0,0)}50%{transform:translate(20px,-20px)}}
+
+.landing-hero-content{position:relative;text-align:center;max-width:800px;z-index:1}
+.landing-badge{display:inline-block;padding:6px 18px;border-radius:50px;background:rgba(124,106,247,.15);border:1px solid rgba(124,106,247,.3);color:var(--accent3);font-size:.82rem;font-weight:600;margin-bottom:24px;animation:fadeInUp .6s ease both}
+.landing-title{font-size:clamp(2.4rem,6vw,4.2rem);font-weight:900;line-height:1.1;letter-spacing:-2px;margin-bottom:20px;animation:fadeInUp .7s ease .1s both}
+.landing-title-gradient{background:linear-gradient(135deg,var(--accent3) 0%,var(--pink) 50%,var(--teal) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.landing-subtitle{font-size:1.1rem;color:var(--text2);line-height:1.7;margin-bottom:36px;animation:fadeInUp .7s ease .2s both}
+.landing-hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;animation:fadeInUp .7s ease .3s both}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* FLOATING BOOKS */
+.landing-books-float{position:absolute;inset:0;pointer-events:none;z-index:0}
+.float-book{position:absolute;width:70px;height:100px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:rgba(255,255,255,.9);box-shadow:0 8px 32px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1)}
+.float-book span{writing-mode:vertical-rl;text-orientation:mixed;font-size:.7rem;padding:4px}
+.fb1{top:10%;left:5%;animation:bookFloat1 6s ease-in-out infinite}
+.fb2{top:20%;right:8%;animation:bookFloat2 7s ease-in-out infinite .5s}
+.fb3{bottom:25%;left:3%;animation:bookFloat3 8s ease-in-out infinite 1s}
+.fb4{bottom:15%;right:5%;animation:bookFloat1 9s ease-in-out infinite 1.5s}
+.fb5{top:50%;left:8%;animation:bookFloat2 7s ease-in-out infinite 2s}
+.fb6{top:40%;right:3%;animation:bookFloat3 6s ease-in-out infinite 2.5s}
+@keyframes bookFloat1{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-18px) rotate(2deg)}}
+@keyframes bookFloat2{0%,100%{transform:translateY(0) rotate(4deg)}50%{transform:translateY(-14px) rotate(-2deg)}}
+@keyframes bookFloat3{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-22px) rotate(3deg)}}
+
+/* STATS */
+.landing-stats{display:flex;justify-content:center;gap:0;padding:40px 40px;border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05);background:rgba(13,14,28,.6);flex-wrap:wrap}
+.landing-stat{text-align:center;padding:20px 48px;border-right:1px solid rgba(255,255,255,.06)}
+.landing-stat:last-child{border-right:none}
+.landing-stat-num{font-size:2.4rem;font-weight:900;background:linear-gradient(135deg,var(--accent3),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block}
+.landing-stat p{color:var(--text2);font-size:.82rem;margin-top:4px;font-weight:500}
+
+/* FEATURES */
+.landing-features{padding:80px 40px;max-width:1100px;margin:0 auto}
+.landing-section-title{font-size:2rem;font-weight:900;text-align:center;margin-bottom:48px;letter-spacing:-.5px}
+.landing-features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.landing-feature-card{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius-xl);padding:28px 24px;transition:all .3s;cursor:default}
+.landing-feature-card:hover{transform:translateY(-6px);border-color:rgba(124,106,247,.25);box-shadow:0 20px 48px rgba(0,0,0,.4)}
+.lf-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:#fff;margin-bottom:16px}
+.landing-feature-card h3{font-size:1rem;font-weight:700;margin-bottom:8px}
+.landing-feature-card p{font-size:.84rem;color:var(--text2);line-height:1.6}
+
+/* CTA FINAL */
+.landing-cta-section{padding:80px 40px;text-align:center}
+.landing-cta-box{background:linear-gradient(135deg,rgba(124,106,247,.12),rgba(244,114,182,.08));border:1px solid rgba(124,106,247,.2);border-radius:var(--radius-xl);padding:60px 40px;max-width:600px;margin:0 auto}
+.landing-cta-box h2{font-size:2rem;font-weight:900;margin-bottom:12px}
+.landing-cta-box p{color:var(--text2);margin-bottom:28px;font-size:1rem}
+
+/* FOOTER */
+.landing-footer{padding:24px 40px;text-align:center;border-top:1px solid rgba(255,255,255,.05)}
+
+/* AUTH BACK BTN */
+.auth-back-btn{position:absolute;top:14px;left:14px;background:var(--bg3);border:none;color:var(--text2);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.auth-back-btn:hover{color:var(--accent3);background:rgba(124,106,247,.15)}
+.auth-box{position:relative}
+
+/* RESPONSIVE LANDING */
+@media(max-width:768px){
+  .landing-nav{padding:0 16px}
+  .landing-nav-logo span{display:none}
+  .landing-hero{padding:40px 16px;min-height:auto}
+  .landing-title{font-size:2rem;letter-spacing:-1px}
+  .landing-subtitle{font-size:.9rem}
+  .landing-hero-btns{flex-direction:column;align-items:center}
+  .landing-btn-lg{width:100%;max-width:300px;text-align:center}
+  .float-book{display:none}
+  .landing-stats{gap:0;padding:20px}
+  .landing-stat{padding:14px 20px;border-right:none;border-bottom:1px solid rgba(255,255,255,.06);width:50%}
+  .landing-stat:nth-child(odd){border-right:1px solid rgba(255,255,255,.06)}
+  .landing-features{padding:40px 16px}
+  .landing-features-grid{grid-template-columns:1fr}
+  .landing-section-title{font-size:1.4rem}
+  .landing-cta-section{padding:40px 16px}
+  .landing-cta-box{padding:32px 20px}
+}
+
+/* ===================================================
+   CARTES 3D TILT + BADGES
+   =================================================== */
+.book-card{transform-style:preserve-3d;will-change:transform}
+.book-card-badge{position:absolute;top:8px;left:8px;padding:3px 9px;border-radius:20px;font-size:.62rem;font-weight:700;z-index:2;letter-spacing:.3px;text-transform:uppercase}
+.badge-new{background:linear-gradient(135deg,var(--teal),#16a085);color:#000}
+.badge-popular{background:linear-gradient(135deg,var(--orange),#d4ac0d);color:#000}
+.badge-trending{background:linear-gradient(135deg,var(--pink),#c0392b);color:#fff}
+.badge-classic{background:linear-gradient(135deg,var(--accent3),var(--accent2));color:#fff}
+
+/* Barre de progression sur les cartes en cours */
+.book-card-progress{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.08);border-radius:0 0 var(--radius-lg) var(--radius-lg);overflow:hidden}
+.book-card-progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--pink));transition:width .3s}
+
+/* ===================================================
+   DÉFIS & BADGES SYSTÈME
+   =================================================== */
+.challenges-section{margin-bottom:32px}
+.challenges-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-top:16px}
+.challenge-card{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius-lg);padding:16px;display:flex;align-items:center;gap:14px;transition:all .2s;position:relative;overflow:hidden}
+.challenge-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(124,106,247,.04));pointer-events:none}
+.challenge-card.completed{border-color:rgba(52,211,153,.3);background:rgba(52,211,153,.05)}
+.challenge-card.completed::before{background:linear-gradient(135deg,transparent,rgba(52,211,153,.06))}
+.challenge-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.challenge-info{flex:1;min-width:0}
+.challenge-name{font-size:.82rem;font-weight:700;margin-bottom:4px}
+.challenge-desc{font-size:.72rem;color:var(--text2);margin-bottom:6px}
+.challenge-progress-wrap{background:rgba(255,255,255,.07);border-radius:4px;height:5px;overflow:hidden}
+.challenge-progress-fill{height:100%;border-radius:4px;transition:width .5s ease}
+.challenge-pct{font-size:.68rem;color:var(--text3);margin-top:3px}
+.challenge-check{position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;background:var(--success);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:#000;font-weight:700}
+
+/* BADGES GRID */
+.badges-section{margin-bottom:32px}
+.badges-grid-full{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.badge-item{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 16px;background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius-lg);min-width:80px;transition:all .2s;cursor:default}
+.badge-item:hover{transform:translateY(-3px);border-color:rgba(124,106,247,.2)}
+.badge-item.locked{opacity:.35;filter:grayscale(1)}
+.badge-emoji{font-size:1.8rem}
+.badge-name{font-size:.65rem;font-weight:600;color:var(--text2);text-align:center}
+.badge-item.unlocked .badge-name{color:var(--accent3)}
+
+/* STREAK AMÉLIORÉ */
+.streak-card{background:linear-gradient(135deg,rgba(251,146,60,.15),rgba(212,172,13,.1));border:1px solid rgba(251,146,60,.25);border-radius:var(--radius-lg);padding:14px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .2s}
+.streak-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(251,146,60,.2)}
+.streak-fire{font-size:2rem;animation:fireFlicker 1.5s ease-in-out infinite}
+@keyframes fireFlicker{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.1) rotate(3deg)}}
+.streak-num{font-size:1.8rem;font-weight:900;color:var(--orange);line-height:1}
+.streak-label{font-size:.72rem;color:var(--text2);margin-top:2px}
+
+/* ===================================================
+   PAGE RÉCOMPENSES
+   =================================================== */
+.rewards-streak-banner{display:flex;align-items:center;gap:20px;background:linear-gradient(135deg,rgba(251,146,60,.15),rgba(212,172,13,.08));border:1px solid rgba(251,146,60,.3);border-radius:var(--radius-xl);padding:24px 28px;margin-bottom:32px}
+.rsb-fire{font-size:3rem;animation:fireFlicker 1.5s ease-in-out infinite;flex-shrink:0}
+.rsb-num{font-size:3rem;font-weight:900;color:var(--orange);line-height:1}
+.rsb-label{font-size:.85rem;color:var(--text2);margin-top:4px}
+.rsb-tip{margin-left:auto;font-size:.82rem;color:var(--text2);max-width:200px;text-align:right;font-style:italic}
+
+/* BADGES GRID PAGE RÉCOMPENSES */
+.rewards-badges-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px;margin-top:16px}
+.rewards-badge-card{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-lg);padding:20px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all .25s;position:relative;overflow:hidden}
+.rewards-badge-card.unlocked{border-color:rgba(124,106,247,.3);background:linear-gradient(135deg,rgba(124,106,247,.08),var(--bg2))}
+.rewards-badge-card.unlocked:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.4),0 0 0 1px rgba(124,106,247,.2)}
+.rewards-badge-card.locked{opacity:.4;filter:grayscale(.8)}
+.rewards-badge-emoji{font-size:2.2rem;line-height:1}
+.rewards-badge-name{font-size:.78rem;font-weight:700;text-align:center;color:var(--text)}
+.rewards-badge-card.unlocked .rewards-badge-name{color:var(--accent3)}
+.rewards-badge-desc{font-size:.68rem;color:var(--text2);text-align:center;line-height:1.4}
+.rewards-badge-check{position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:50%;background:var(--success);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:#000;font-weight:700}
+
+@media(max-width:768px){
+  .rewards-streak-banner{flex-wrap:wrap;gap:12px;padding:16px}
+  .rsb-tip{margin-left:0;text-align:left;max-width:100%}
+  .rewards-badges-grid{grid-template-columns:repeat(3,1fr);gap:10px}
+  .rewards-badge-card{padding:14px 8px}
+  .rewards-badge-emoji{font-size:1.8rem}
+}
