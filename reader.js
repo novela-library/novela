@@ -1146,8 +1146,7 @@ function applyAnnotations() {
 
 // ===== ANNOTATION MODE =====
 let annotationMode = false;
-let selectedText = '';
-let selectedRange = null;
+// selectedText and selectedRange already declared above in ANNOTATIONS SYSTEM section
 
 function toggleAnnotationMode() {
   annotationMode = !annotationMode;
