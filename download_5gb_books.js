@@ -7,7 +7,7 @@ const path = require('path');
 const https = require('https');
 const http = require('http');
 
-const BOOKS_DIR = '../novela-books';
+const BOOKS_DIR = './books'; // Existing books directory
 const MAX_SIZE = 5 * 1024 * 1024 * 1024; // 5GB
 const RETRY_ATTEMPTS = 3;
 const TIMEOUT = 30000;
@@ -18,9 +18,9 @@ let failedCount = 0;
 
 // Check directory
 if (!fs.existsSync(BOOKS_DIR)) {
-  console.log('❌ Directory not found:', BOOKS_DIR);
-  console.log('Creating directory...');
+  console.log('📁 Creating directory:', BOOKS_DIR);
   fs.mkdirSync(BOOKS_DIR, { recursive: true });
+  console.log('✅ Directory created\n');
 }
 
 // ===== DOWNLOAD WITH RETRY =====
