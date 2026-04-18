@@ -1594,10 +1594,6 @@ function changeHighlightColor(id, color) {
   document.querySelectorAll('.annotation-menu').forEach(m => m.remove());
   renderChapter();
 }
-      }
-    });
-  }, 100);
-}
 
 function editAnnotationNote(id) {
   const chapterKey = 'ch' + currentChapter;
