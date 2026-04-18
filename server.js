@@ -45,11 +45,14 @@ async function supaFetch(method, table, body, query) {
 let usersCache = null;
 
 async function readUsersDB() {
-  if (!SUPABASE_KEY) return readUsersLocal();
+  if (!SUPABASE_KEY) {
+    console.log('No Supabase key, reading local');
+    return readUsersLocal();
+  }
   try {
     const r = await supaFetch('GET', 'users', null, '?select=*&order=created_at.asc');
+    console.log('Supabase read status:', r.status, 'count:', Array.isArray(r.data) ? r.data.length : r.data);
     if (r.status === 200 && Array.isArray(r.data)) {
-      // Normalize Supabase fields to match local format
       const normalized = r.data.map(u => ({
         ...u,
         createdAt: u.createdAt || u.created_at || new Date().toISOString()
@@ -580,6 +583,7 @@ const server = http.createServer(async (req, res) => {
   // GET /api/users — liste tous les comptes (admin)
   if (pathname === '/api/users' && req.method === 'GET') {
     const users = await readUsersDB();
+    console.log('GET /api/users returning', users.length, 'users');
     sendJSON(res, 200, users.map(u => ({ ...u, pass: '••••••' })));
     return;
   }
