@@ -62,12 +62,12 @@ async function addUserDB(user) {
 
 async function updateUserDB(id, updates) {
   if (!SUPABASE_KEY) return;
-  try { await supaFetch('PATCH', 'users?id=eq.' + id, updates); } catch(e) {}
+  try { await supaFetch('PATCH', `users?id=eq.${id}`, updates); } catch(e) { console.log('Supabase update error:', e.message); }
 }
 
 async function deleteUserDB(id) {
   if (!SUPABASE_KEY) return;
-  try { await supaFetch('DELETE', 'users?id=eq.' + id); } catch(e) {}
+  try { await supaFetch('DELETE', `users?id=eq.${id}`); } catch(e) { console.log('Supabase delete error:', e.message); }
 }
 
 function readUsersLocal() {
@@ -649,11 +649,13 @@ const server = http.createServer(async (req, res) => {
   }
 
   // PUT /api/users/:id — modifier un compte (admin)
+  // PUT /api/users/:id — modifier un compte (admin)
   if (pathname.startsWith('/api/users/') && req.method === 'PUT') {
-    const id = parseInt(pathname.split('/')[3]);
+    const rawId = pathname.split('/')[3];
+    const id = isNaN(rawId) ? rawId : parseInt(rawId); // support UUID and integer IDs
     const body = await getBody(req);
     const users = readUsers();
-    const idx = users.findIndex(u => u.id === id);
+    const idx = users.findIndex(u => String(u.id) === String(rawId));
     if (idx === -1) { sendJSON(res, 404, { error: 'Utilisateur introuvable' }); return; }
     if (body.name) users[idx].name = body.name;
     if (body.username !== undefined) users[idx].username = body.username;
@@ -661,25 +663,25 @@ const server = http.createServer(async (req, res) => {
     if (body.pass) users[idx].pass = body.pass;
     if (body.banned !== undefined) users[idx].banned = body.banned;
     writeUsers(users);
-    // Sync to Supabase
     const updates = {};
     if (body.name) updates.name = body.name;
     if (body.username !== undefined) updates.username = body.username;
     if (body.email) updates.email = body.email;
     if (body.pass) updates.pass = body.pass;
     if (body.banned !== undefined) updates.banned = body.banned;
-    await updateUserDB(id, updates).catch(() => {});
+    await updateUserDB(rawId, updates).catch(() => {});
     sendJSON(res, 200, { success: true });
     return;
   }
 
   // DELETE /api/users/:id — supprimer un compte (admin)
   if (pathname.startsWith('/api/users/') && req.method === 'DELETE') {
-    const id = parseInt(pathname.split('/')[3]);
+    const rawId = pathname.split('/')[3];
     const users = readUsers();
-    const filtered = users.filter(u => u.id !== id);
+    const filtered = users.filter(u => String(u.id) !== String(rawId));
     if (filtered.length === users.length) { sendJSON(res, 404, { error: 'Utilisateur introuvable' }); return; }
     writeUsers(filtered);
+    await deleteUserDB(rawId).catch(() => {});
     sendJSON(res, 200, { success: true });
     return;
   }
