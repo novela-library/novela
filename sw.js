@@ -1,4 +1,4 @@
-const CACHE = 'novela-v1';
+const CACHE = 'novela-v2';
 const STATIC = ['/', '/index.html', '/app.js', '/style.css', '/logo.png',
   '/reader.html', '/reader.css', '/reader.js'];
 
