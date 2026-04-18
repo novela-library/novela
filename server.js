@@ -73,8 +73,7 @@ async function addUserDB(user) {
       email: user.email,
       pass: user.pass,
       verified: true,
-      twofa: false,
-      banned: false
+      twofa: false
     });
     console.log('Supabase add result:', r.status, JSON.stringify(r.data));
     // Update local cache with Supabase-assigned ID
