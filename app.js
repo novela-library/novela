@@ -2061,13 +2061,15 @@ async function startAIQuiz(bookId) {
 }
 
 async function generateAndStartQuiz(book) {
-  const isArabic = /[\u0600-\u06FF]/.test(book.title + book.author);
-  const isFrench = ['Hugo','Zola','Flaubert','Camus','Proust','Balzac','Stendhal','Voltaire','Baudelaire','Molière','Dumas','Maupassant'].some(a => book.author?.includes(a));
-  const bookLangNote = isArabic
-    ? 'اكتب الاختبار باللغة العربية الفصحى.'
-    : isFrench
-    ? 'Génère le quiz en français.'
-    : 'Generate the quiz in English.';
+  // Use interface language instead of book language
+  const langInstructions = {
+    fr: 'Génère le quiz en français.',
+    en: 'Generate the quiz in English.',
+    es: 'Genera el quiz en español.',
+    ar: 'اكتب الاختبار باللغة العربية الفصحى.'
+  };
+  
+  const bookLangNote = langInstructions[currentLang] || langInstructions['en'];
 
   const prompt = `${bookLangNote} Generate a quiz of exactly 5 multiple choice questions about the book "${book.title}" by ${book.author}. 4 options per question, exactly 1 correct answer, short explanation. Respond ONLY with valid JSON, nothing else:
 {"questions":[{"q":"question","opts":["A","B","C","D"],"ans":0,"exp":"explanation"}]}`;
@@ -2106,7 +2108,13 @@ async function generateAndStartQuiz(book) {
     console.error('Quiz error:', e.message);
     document.getElementById('quiz-loading').style.display = 'none';
     document.getElementById('quiz-menu').style.display = 'block';
-    showToastQuiz('❌ ' + (e.message.includes('API key') ? 'Clé API manquante' : e.message.includes('JSON') ? 'Réponse invalide — réessayez' : 'Erreur de génération. Réessayez.'));
+    const errorMessages = {
+      fr: e.message.includes('API key') ? 'Clé API manquante' : e.message.includes('JSON') ? 'Réponse invalide — réessayez' : 'Erreur de génération. Réessayez.',
+      en: e.message.includes('API key') ? 'API key missing' : e.message.includes('JSON') ? 'Invalid response — try again' : 'Generation error. Try again.',
+      es: e.message.includes('API key') ? 'Clave API faltante' : e.message.includes('JSON') ? 'Respuesta inválida — inténtalo de nuevo' : 'Error de generación. Inténtalo de nuevo.',
+      ar: e.message.includes('API key') ? 'مفتاح API مفقود' : e.message.includes('JSON') ? 'استجابة غير صالحة — حاول مرة أخرى' : 'خطأ في التوليد. حاول مرة أخرى.'
+    };
+    showToastQuiz('❌ ' + (errorMessages[currentLang] || errorMessages['en']));
   }
 }
 
