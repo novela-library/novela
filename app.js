@@ -1346,7 +1346,11 @@ function renderGutenbergBooks(books, replace) {
 }
 
 function openGutenbergBook(gutId, title, author, cover, desc) {
-  const b = { id: gutId, title, author, cover, desc, genre: '', year: '', emoji: '📖', color: '#1c1b35' };
+  // Use gutId as a string key for favorites/read later
+  const bookKey = 'gut_' + gutId;
+  const isFav = isFavoriteKey(bookKey);
+  const isLater = isReadLaterKey(bookKey);
+
   document.getElementById('modal-content').innerHTML = `
     <div class="modal-book-cover" style="background:#1c1b35;border-radius:10px;overflow:hidden">
       ${cover ? `<img src="${cover}" style="width:120px;height:180px;object-fit:cover">` : `<span style="font-size:3rem">📖</span>`}
@@ -1362,6 +1366,14 @@ function openGutenbergBook(gutId, title, author, cover, desc) {
       </button>
       <button class="btn-secondary" style="flex:1" onclick="askAI('Parle-moi du livre ${title.replace(/'/g,"\\'")} de ${author}'); closeBookModal(); showPage('ai')">
         <i class="fas fa-robot"></i> Analyser avec l'IA
+      </button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn-secondary" style="flex:1;font-size:.82rem" id="gut-fav-btn" onclick="toggleFavoriteKey('${bookKey}','${title.replace(/'/g,"\\'")}','${author.replace(/'/g,"\\'")}','${cover}',this)">
+        <i class="fas fa-heart" style="color:var(--pink)"></i> ${isFav ? 'Retirer' : 'Favoris'}
+      </button>
+      <button class="btn-secondary" style="flex:1;font-size:.82rem" id="gut-later-btn" onclick="toggleReadLaterKey('${bookKey}','${title.replace(/'/g,"\\'")}','${author.replace(/'/g,"\\'")}','${cover}',this)">
+        <i class="fas fa-clock" style="color:var(--teal)"></i> ${isLater ? 'Retirer' : 'À lire'}
       </button>
     </div>`;
   document.getElementById('book-modal').classList.add('open');
@@ -2144,6 +2156,46 @@ function isFavorite(bookId) {
 function isReadLater(bookId) {
   const p = getProfile();
   return (p.readLater || []).includes(bookId);
+}
+
+// For Gutenberg books — use string keys
+function isFavoriteKey(key) {
+  const p = getProfile();
+  return (p.favoritesExt || []).some(f => f.key === key);
+}
+function isReadLaterKey(key) {
+  const p = getProfile();
+  return (p.readLaterExt || []).some(f => f.key === key);
+}
+function toggleFavoriteKey(key, title, author, cover, btn) {
+  const p = getProfile();
+  p.favoritesExt = p.favoritesExt || [];
+  const idx = p.favoritesExt.findIndex(f => f.key === key);
+  if (idx !== -1) {
+    p.favoritesExt.splice(idx, 1);
+    if (btn) btn.innerHTML = `<i class="fas fa-heart" style="color:var(--pink)"></i> Favoris`;
+    showProfileToast('💔 Retiré des favoris');
+  } else {
+    p.favoritesExt.push({ key, title, author, cover });
+    if (btn) btn.innerHTML = `<i class="fas fa-heart" style="color:var(--pink)"></i> Retirer`;
+    showProfileToast('❤️ Ajouté aux favoris !');
+  }
+  saveProfileData(p);
+}
+function toggleReadLaterKey(key, title, author, cover, btn) {
+  const p = getProfile();
+  p.readLaterExt = p.readLaterExt || [];
+  const idx = p.readLaterExt.findIndex(f => f.key === key);
+  if (idx !== -1) {
+    p.readLaterExt.splice(idx, 1);
+    if (btn) btn.innerHTML = `<i class="fas fa-clock" style="color:var(--teal)"></i> À lire`;
+    showProfileToast('Retiré de la liste');
+  } else {
+    p.readLaterExt.push({ key, title, author, cover });
+    if (btn) btn.innerHTML = `<i class="fas fa-clock" style="color:var(--teal)"></i> Retirer`;
+    showProfileToast('🕐 Ajouté à lire plus tard !');
+  }
+  saveProfileData(p);
 }
 
 function showProfileToast(msg, isError = false) {
