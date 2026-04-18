@@ -1453,7 +1453,8 @@ function toggleAnnotationsPanel() {
   let panel = document.getElementById('annotations-panel');
   
   if (panel) {
-    panel.remove();
+    panel.classList.remove('open');
+    setTimeout(() => panel.remove(), 300);
     return;
   }
   
@@ -1474,7 +1475,7 @@ function toggleAnnotationsPanel() {
   panel.innerHTML = `
     <div class="annotations-panel-header">
       <h3><i class="fas fa-highlighter"></i> Mes annotations</h3>
-      <button onclick="toggleAnnotationsPanel()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.2rem">×</button>
+      <button onclick="toggleAnnotationsPanel()">×</button>
     </div>
     
     <div class="annotations-tabs">
@@ -1498,13 +1499,15 @@ function toggleAnnotationsPanel() {
       <button onclick="exportAnnotations()" style="flex:1;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">
         <i class="fas fa-download"></i> Exporter
       </button>
-      <button onclick="clearAllAnnotations()" style="flex:1;padding:10px;background:var(--error);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">
+      <button onclick="clearAllAnnotations()" style="flex:1;padding:10px;background:#ef4444;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">
         <i class="fas fa-trash"></i> Tout effacer
       </button>
     </div>
   `;
   
   document.body.appendChild(panel);
+  // Trigger slide-in animation
+  requestAnimationFrame(() => panel.classList.add('open'));
 }
 
 function renderHighlightsList() {

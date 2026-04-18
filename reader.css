@@ -285,18 +285,17 @@ body {
 
 /* ===== ANNOTATIONS SYSTEM ===== */
 
-/* Highlight Menu - Modern Design */
+/* Highlight Menu */
 .highlight-menu {
   position: fixed;
   z-index: 10000;
-  background: linear-gradient(135deg, var(--bg2), var(--bg3));
-  border: 1px solid rgba(167, 139, 250, 0.3);
+  background: var(--bg2);
+  border: 1px solid rgba(167, 139, 250, 0.4);
   border-radius: 16px;
   padding: 8px;
   display: none;
   gap: 6px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(167,139,250,0.1);
-  animation: fadeInScale 0.2s ease;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
   backdrop-filter: blur(10px);
 }
 
@@ -311,122 +310,74 @@ body {
   border-radius: 12px;
   border: 2px solid transparent;
   cursor: pointer;
-  font-size: 1.2rem;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 1.1rem;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  position: relative;
-  overflow: hidden;
 }
 
-.highlight-menu button::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.highlight-menu button:hover::before {
-  opacity: 1;
+.highlight-menu button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
 }
 
 .highlight-menu button:active {
   transform: scale(0.92);
 }
 
-.highlight-menu button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-  border-color: rgba(255,255,255,0.2);
-}
-
-/* Color-specific button styles */
-.highlight-menu button[style*="ffeb3b"] { background: linear-gradient(135deg, #ffeb3b, #fdd835); }
-.highlight-menu button[style*="4caf50"] { background: linear-gradient(135deg, #4caf50, #388e3c); }
-.highlight-menu button[style*="f472b6"] { background: linear-gradient(135deg, #f472b6, #ec4899); }
-.highlight-menu button[style*="2196f3"] { background: linear-gradient(135deg, #2196f3, #1976d2); }
-.highlight-menu button[style*="f87171"] { background: linear-gradient(135deg, #f87171, #ef4444); }
-
 /* Annotation toggle button */
 #toggle-annotation-btn {
-  font-size: 0.75rem;
-  padding: 6px 12px;
-  border-radius: 8px;
   transition: all 0.3s;
-  white-space: nowrap;
-}
-
-#toggle-annotation-btn i {
-  margin-right: 4px;
 }
 
 /* Highlights */
 .highlight {
   cursor: pointer;
-  border-radius: 4px;
-  padding: 2px 4px;
-  margin: 0 -2px;
+  border-radius: 3px;
+  padding: 1px 3px;
   transition: all 0.2s;
   position: relative;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .highlight:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  filter: brightness(1.1);
+  filter: brightness(1.15);
 }
 
 .highlight[data-color="yellow"] {
-  background: linear-gradient(135deg, rgba(255, 235, 59, 0.5), rgba(253, 216, 53, 0.5));
-  border-bottom: 2px solid rgba(255, 235, 59, 0.8);
+  background: rgba(255, 235, 59, 0.45);
+  border-bottom: 2px solid rgba(255, 235, 59, 0.9);
 }
-
 .highlight[data-color="green"] {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.5), rgba(56, 142, 60, 0.5));
-  border-bottom: 2px solid rgba(76, 175, 80, 0.8);
+  background: rgba(76, 175, 80, 0.4);
+  border-bottom: 2px solid rgba(76, 175, 80, 0.9);
 }
-
 .highlight[data-color="pink"] {
-  background: linear-gradient(135deg, rgba(244, 114, 182, 0.5), rgba(236, 72, 153, 0.5));
-  border-bottom: 2px solid rgba(244, 114, 182, 0.8);
+  background: rgba(244, 114, 182, 0.4);
+  border-bottom: 2px solid rgba(244, 114, 182, 0.9);
 }
-
 .highlight[data-color="blue"] {
-  background: linear-gradient(135deg, rgba(33, 150, 243, 0.5), rgba(25, 118, 210, 0.5));
-  border-bottom: 2px solid rgba(33, 150, 243, 0.8);
+  background: rgba(33, 150, 243, 0.4);
+  border-bottom: 2px solid rgba(33, 150, 243, 0.9);
 }
 
-/* Highlight with note indicator */
 .highlight[data-has-note="true"]::after {
   content: '📝';
-  font-size: 0.7em;
+  font-size: 0.65em;
   margin-left: 2px;
-  opacity: 0.7;
-}
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
+  opacity: 0.8;
 }
 
-.highlight:hover {
-  filter: brightness(1.2);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-/* Annotations Panel - Modern Sidebar */
+/* Annotations Panel */
 .annotations-panel {
   position: fixed;
   top: 0;
-  right: -400px;
+  right: -420px;
   width: 380px;
   height: 100vh;
-  background: linear-gradient(180deg, var(--bg2), var(--bg3));
-  border-left: 1px solid rgba(167, 139, 250, 0.2);
+  background: var(--bg2);
+  border-left: 1px solid rgba(167, 139, 250, 0.25);
   box-shadow: -8px 0 40px rgba(0,0,0,0.5);
   z-index: 9999;
   display: flex;
@@ -443,14 +394,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  padding: 18px 20px;
+  background: var(--accent);
+  flex-shrink: 0;
 }
 
 .annotations-panel-header h3 {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #fff;
   display: flex;
@@ -459,198 +409,44 @@ body {
 }
 
 .annotations-panel-header button {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
-  background: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.25);
   border: none;
   color: #fff;
   cursor: pointer;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: background 0.2s;
 }
 
 .annotations-panel-header button:hover {
-  background: rgba(255,255,255,0.3);
-  transform: scale(1.1);
+  background: rgba(255,255,255,0.4);
 }
 
 .annotations-tabs {
   display: flex;
   background: var(--bg3);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  padding: 4px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  padding: 6px;
   gap: 4px;
 }
 
 .ann-tab {
   flex: 1;
-  padding: 10px 12px;
+  padding: 9px 8px;
   border: none;
   border-radius: 8px;
-  background: transparent;
-  color: var(--text2);
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.ann-tab:hover {
-  background: rgba(167, 139, 250, 0.1);
-  color: var(--text);
-}
-
-.ann-tab.active {
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.4);
-}
-
-.ann-tab-content {
-  display: none;
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-}
-
-.ann-tab-content.active {
-  display: block;
-}
-
-.annotations-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.annotation-item {
-  background: var(--bg2);
-  border: 1px solid rgba(167, 139, 250, 0.2);
-  border-radius: 12px;
-  padding: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-  overflow: hidden;
-}
-
-.annotation-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: var(--accent);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.annotation-item:hover {
-  border-color: var(--accent);
-  transform: translateX(-4px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-}
-
-.annotation-item:hover::before {
-  opacity: 1;
-}
-
-.annotation-item-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 0.8rem;
-  color: var(--text2);
-  font-weight: 600;
-}
-
-.annotation-item-text {
-  font-size: 0.9rem;
-  color: var(--text);
-  line-height: 1.5;
-  font-style: italic;
-  margin-bottom: 8px;
-}
-
-.annotation-item-note {
-  font-size: 0.85rem;
-  color: var(--accent3);
-  background: rgba(167, 139, 250, 0.1);
-  padding: 8px 12px;
-  border-radius: 8px;
-  border-left: 3px solid var(--accent);
-  margin-top: 8px;
-}
-
-.annotations-panel-footer {
-  display: flex;
-  gap: 8px;
-  padding: 16px;
-  background: var(--bg3);
-  border-top: 1px solid rgba(255,255,255,0.05);
-}
-  right: 0;
-  bottom: 0;
-  width: 360px;
-  background: var(--bg2);
-  border-left: 1px solid var(--border);
-  z-index: 500;
-  display: flex;
-  flex-direction: column;
-  box-shadow: -4px 0 24px rgba(0,0,0,0.3);
-  animation: slideInRight 0.3s ease;
-}
-
-@keyframes slideInRight {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
-}
-
-.annotations-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg2);
-}
-
-.annotations-panel-header h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.annotations-tabs {
-  display: flex;
-  background: var(--bg3);
-  border-bottom: 1px solid var(--border);
-}
-
-.ann-tab {
-  flex: 1;
-  padding: 12px;
-  border: none;
   background: transparent;
   color: var(--text2);
   cursor: pointer;
   font-size: 0.82rem;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.2s;
-  border-bottom: 2px solid transparent;
 }
 
 .ann-tab:hover {
@@ -659,16 +455,15 @@ body {
 }
 
 .ann-tab.active {
-  color: var(--accent);
-  background: var(--bg2);
-  border-bottom-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
 }
 
 .ann-tab-content {
   display: none;
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 12px;
 }
 
 .ann-tab-content.active {
@@ -678,13 +473,13 @@ body {
 .annotations-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .annotation-item {
   background: var(--bg3);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 12px;
   cursor: pointer;
   transition: all 0.2s;
@@ -692,7 +487,6 @@ body {
 
 .annotation-item:hover {
   border-color: var(--accent);
-  transform: translateX(-4px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
@@ -700,9 +494,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-size: 0.78rem;
   color: var(--text2);
+  font-weight: 600;
 }
 
 .annotation-item-text {
@@ -710,7 +505,6 @@ body {
   color: var(--text);
   line-height: 1.5;
   font-style: italic;
-  margin-bottom: 8px;
 }
 
 .annotation-item-note {
@@ -720,17 +514,19 @@ body {
   padding: 8px;
   border-radius: 8px;
   margin-top: 8px;
+  border-left: 3px solid var(--accent);
 }
 
 .annotations-panel-footer {
   display: flex;
   gap: 8px;
-  padding: 16px;
+  padding: 14px;
   border-top: 1px solid var(--border);
-  background: var(--bg2);
+  background: var(--bg3);
+  flex-shrink: 0;
 }
 
-/* Annotation Menu (edit/delete) */
+/* Annotation context menu */
 .annotation-menu {
   position: fixed;
   z-index: 10001;
@@ -738,61 +534,30 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
+  from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Bookmark Button in Topbar */
-#bookmark-btn {
-  transition: all 0.2s;
-}
-
-#bookmark-btn:hover {
-  transform: scale(1.1);
-}
-
-/* Mobile Responsive */
+/* Mobile */
 @media (max-width: 768px) {
   .annotations-panel {
     width: 100%;
-    max-width: 100vw;
+    right: -100%;
   }
-  
   .highlight-menu {
     left: 50% !important;
-    transform: translateX(-50%);
-    bottom: 80px;
+    transform: translateX(-50%) !important;
+    bottom: 90px !important;
     top: auto !important;
   }
-  
-  .annotation-item {
-    padding: 10px;
-  }
-  
-  .annotation-item-text {
-    font-size: 0.85rem;
-  }
 }
 
-/* Pulse animation for highlights */
+/* Pulse animation */
 @keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(167,139,250,0.7);
-  }
-  50% {
-    transform: scale(1.02);
-    box-shadow: 0 0 0 8px rgba(167,139,250,0);
-  }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(167,139,250,0.6); }
+  50% { box-shadow: 0 0 0 8px rgba(167,139,250,0); }
 }
 
-/* Selection highlight */
-::selection {
-  background: rgba(167,139,250,0.3);
-  color: inherit;
-}
-
-::-moz-selection {
-  background: rgba(167,139,250,0.3);
-  color: inherit;
-}
+/* Text selection color */
+::selection { background: rgba(167,139,250,0.35); color: inherit; }
+::-moz-selection { background: rgba(167,139,250,0.35); color: inherit; }
