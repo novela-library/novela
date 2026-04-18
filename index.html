@@ -10,6 +10,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <link rel="apple-touch-icon" href="logo.png"/>
+  <!-- Preconnect to external resources for faster loading -->
+  <link rel="preconnect" href="https://gutendex.com" crossorigin>
+  <link rel="preconnect" href="https://www.gutenberg.org" crossorigin>
+  <link rel="dns-prefetch" href="https://gutendex.com">
+  <link rel="dns-prefetch" href="https://www.gutenberg.org">
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -332,6 +337,8 @@
         <input type="text" id="search-input" placeholder="Rechercher parmi 70 000+ livres..." oninput="onSearchInput()" data-i18n-placeholder="search_placeholder" />
       </div>
     </div>
+    <!-- Loading indicator -->
+    <div id="library-loading-bar" style="display:none;height:3px;background:linear-gradient(90deg,var(--accent),var(--pink),var(--teal));border-radius:2px;margin-bottom:16px;animation:loadingPulse 1.5s ease-in-out infinite"></div>
     <div class="genre-filters" id="genre-filters"></div>
     <div class="lang-filters-wrap">
       <div class="lang-filters" id="lang-filters"></div>

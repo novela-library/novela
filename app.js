@@ -1845,42 +1845,93 @@ async function fetchGutenbergPage(replace = false) {
   if (gutenbergLoading) return;
   gutenbergLoading = true;
   const el = document.getElementById('library-books');
+  const loadingBar = document.getElementById('library-loading-bar');
 
   if (replace) {
-    el.innerHTML = Array(20).fill(0).map(() => `
-      <div class="book-card skeleton-card">
-        <div class="book-cover skeleton-cover"></div>
-        <div class="book-info">
-          <div class="skeleton-line" style="width:80%;height:12px;margin-bottom:8px"></div>
-          <div class="skeleton-line" style="width:55%;height:10px"></div>
-        </div>
-      </div>`).join('');
+    // Show loading bar
+    if (loadingBar) loadingBar.style.display = 'block';
+    
+    // INSTANT LOAD: Show local books immediately for instant feedback
+    const localBooks = BOOKS.slice(0, 20);
+    renderBooks('library-books', localBooks);
+    
+    // Then fetch Gutenberg in background to replace with more books
+    setTimeout(() => {
+      el.innerHTML = Array(8).fill(0).map(() => `
+        <div class="book-card skeleton-card">
+          <div class="book-cover skeleton-cover"></div>
+          <div class="book-info">
+            <div class="skeleton-line" style="width:80%;height:12px;margin-bottom:8px"></div>
+            <div class="skeleton-line" style="width:55%;height:10px"></div>
+          </div>
+        </div>`).join('');
+    }, 100);
   }
 
   try {
+    // Check cache first (5 min expiry)
+    const cacheKey = `gutenberg_${gutenbergPage}_${gutenbergLang}_${gutenbergQuery}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp < 300000) { // 5 min
+        renderGutenbergBooks(data.results, replace);
+        document.getElementById('load-more-wrap').style.display = data.next ? 'block' : 'none';
+        if (loadingBar) loadingBar.style.display = 'none';
+        gutenbergLoading = false;
+        return;
+      }
+    }
+
     let url = `https://gutendex.com/books/?page=${gutenbergPage}&sort=popular`;
     if (gutenbergLang) url += `&languages=${gutenbergLang}`;
     else url += `&languages=fr,en,es,de,it,pt,ru,zh,ar,ja`;
     if (gutenbergQuery) url += `&search=${encodeURIComponent(gutenbergQuery)}`;
-    const res = await fetch(url);
+    
+    // Reduced timeout for faster fallback
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+    
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    
     const data = await res.json();
+    
+    // Cache the result
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify({ data, timestamp: Date.now() }));
+    } catch(e) {
+      // Quota exceeded, clear old cache
+      Object.keys(localStorage).filter(k => k.startsWith('gutenberg_')).forEach(k => localStorage.removeItem(k));
+    }
+    
     renderGutenbergBooks(data.results, replace);
     document.getElementById('load-more-wrap').style.display = data.next ? 'block' : 'none';
   } catch(e) {
-    if (replace) renderBooks('library-books', BOOKS);
+    console.error('Gutenberg fetch error:', e);
+    if (replace) {
+      // Fallback to local books if Gutenberg fails
+      renderBooks('library-books', BOOKS.slice(0, 20));
+      document.getElementById('load-more-wrap').style.display = 'none';
+    }
   }
+  
+  // Hide loading bar
+  if (loadingBar) loadingBar.style.display = 'none';
   gutenbergLoading = false;
 }
 
 function renderGutenbergBooks(books, replace) {
   const el = document.getElementById('library-books');
-  const html = books.map(b => {
+  const html = books.map((b, idx) => {
     const cover = b.formats?.['image/jpeg'] || '';
     const author = b.authors?.[0]?.name || 'Auteur inconnu';
     const authorFmt = author.includes(',') ? author.split(',').reverse().map(s=>s.trim()).join(' ') : author;
     const lang = b.languages?.[0] || '';
+    // Prioritize loading first 6 images, lazy load rest
+    const loadingAttr = idx < 6 ? 'eager' : 'lazy';
     const coverHTML = cover
-      ? `<img src="${cover}" alt="${b.title}" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="cover-placeholder" style="display:none;background:#1c1b35"><span>📖</span></div>`
+      ? `<img src="${cover}" alt="${b.title}" loading="${loadingAttr}" decoding="async" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="cover-placeholder" style="display:none;background:#1c1b35"><span>📖</span></div>`
       : `<div class="cover-placeholder" style="background:#1c1b35"><span>📖</span></div>`;
     return `<div class="book-card" onclick="openGutenbergBook(${b.id}, ${JSON.stringify(b.title).replace(/"/g,'&quot;')}, ${JSON.stringify(authorFmt).replace(/"/g,'&quot;')}, '${cover}', ${JSON.stringify(b.summaries?.[0]||'').replace(/"/g,'&quot;')})">
       <div class="book-cover">${coverHTML}</div>
