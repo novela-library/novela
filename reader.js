@@ -1204,13 +1204,120 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // Text selection handler - only works in annotation mode
 document.addEventListener('mouseup', handleTextSelection);
-document.addEventListener('touchend', handleTextSelection);
+
+// ===== MOBILE: TAP ON SENTENCE =====
+let touchStartX = 0, touchStartY = 0, touchMoved = false;
+
+document.addEventListener('touchstart', (e) => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  touchMoved = false;
+}, { passive: true });
+
+document.addEventListener('touchmove', () => {
+  touchMoved = true;
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+  if (!annotationMode) return;
+  if (touchMoved) return; // Was a scroll, not a tap
+  if (e.target.closest('button') || e.target.closest('.highlight-menu') || e.target.closest('.annotation-menu')) return;
+
+  const dx = Math.abs(e.changedTouches[0].clientX - touchStartX);
+  const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+  if (dx > 10 || dy > 10) return; // Moved too much = scroll
+
+  const target = e.target;
+  // Only trigger on text inside book-text
+  if (!target.closest('#book-text')) return;
+
+  e.preventDefault();
+
+  // Get the tapped paragraph
+  const para = target.closest('p');
+  if (!para) return;
+
+  // Get the sentence around the tap point
+  const sentence = getSentenceAtTouch(para, e.changedTouches[0]);
+  if (!sentence || sentence.text.length < 3) return;
+
+  selectedText = sentence.text;
+  selectedRange = null; // Mobile doesn't use range
+
+  // Show menu at tap position
+  showHighlightMenu({
+    clientX: e.changedTouches[0].clientX,
+    clientY: e.changedTouches[0].clientY
+  });
+}, { passive: false });
+
+// Get the sentence closest to the touch point within a paragraph
+function getSentenceAtTouch(para, touch) {
+  const text = para.textContent;
+  if (!text.trim()) return null;
+
+  // Split into sentences
+  const sentenceRegex = /[^.!?؟،\n]+[.!?؟،]?/g;
+  const sentences = [];
+  let match;
+  while ((match = sentenceRegex.exec(text)) !== null) {
+    const s = match[0].trim();
+    if (s.length > 3) sentences.push(s);
+  }
+
+  if (sentences.length === 0) return { text: text.trim() };
+
+  // Find which sentence was tapped using a Range
+  try {
+    const range = document.caretRangeFromPoint
+      ? document.caretRangeFromPoint(touch.clientX, touch.clientY)
+      : document.caretPositionFromPoint
+        ? (() => {
+            const pos = document.caretPositionFromPoint(touch.clientX, touch.clientY);
+            const r = document.createRange();
+            r.setStart(pos.offsetNode, pos.offset);
+            r.collapse(true);
+            return r;
+          })()
+        : null;
+
+    if (!range) return { text: sentences[0] };
+
+    const offset = range.startOffset;
+    const nodeText = range.startContainer.textContent || '';
+
+    // Find position in full paragraph text
+    let charPos = 0;
+    const walker = document.createTreeWalker(para, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      if (node === range.startContainer) {
+        charPos += offset;
+        break;
+      }
+      charPos += node.textContent.length;
+    }
+
+    // Find which sentence contains this position
+    let pos = 0;
+    for (const s of sentences) {
+      const idx = text.indexOf(s, pos);
+      if (idx !== -1 && charPos >= idx && charPos <= idx + s.length) {
+        return { text: s.trim() };
+      }
+      pos = idx + s.length;
+    }
+
+    // Fallback: return closest sentence
+    return { text: sentences[Math.floor(sentences.length / 2)] };
+  } catch(e) {
+    return { text: sentences[0] };
+  }
+}
 
 function handleTextSelection(e) {
-  // Only handle selection in annotation mode
+  // Only handle selection in annotation mode (desktop)
   if (!annotationMode) return;
-  
-  // Don't trigger on button clicks
   if (e.target.closest('button') || e.target.closest('.highlight-menu')) return;
   
   const selection = window.getSelection();
@@ -1275,17 +1382,31 @@ function hideHighlightMenu() {
 
 // Highlight text
 function highlightText(color) {
-  if (!selectedText || !selectedRange) return;
+  if (!selectedText) return;
   
   const chapterKey = 'ch' + currentChapter;
   if (!annotations[chapterKey]) annotations[chapterKey] = {};
   
-  // Calculate position in chapter
   const textEl = document.getElementById('book-text');
   const fullText = textEl.textContent;
-  const start = fullText.indexOf(selectedText);
   
-  if (start === -1) return;
+  // Find the text — use indexOf for mobile (no range), or range position for desktop
+  let start = -1;
+  if (selectedRange) {
+    // Desktop: use range to get accurate position
+    const preRange = document.createRange();
+    preRange.selectNodeContents(textEl);
+    preRange.setEnd(selectedRange.startContainer, selectedRange.startOffset);
+    start = preRange.toString().length;
+  } else {
+    // Mobile: find by text content
+    start = fullText.indexOf(selectedText);
+  }
+  
+  if (start === -1) {
+    showToast('❌ Texte introuvable');
+    return;
+  }
   
   const id = 'ann_' + Date.now();
   annotations[chapterKey][id] = {
@@ -1298,13 +1419,12 @@ function highlightText(color) {
   
   saveAnnotations();
   hideHighlightMenu();
-  window.getSelection().removeAllRanges();
+  if (selectedRange) window.getSelection().removeAllRanges();
+  selectedText = '';
+  selectedRange = null;
   
-  // Re-render chapter to show highlight
   renderChapter();
-  
-  // Show success toast
-  showToast('✨ Texte surligné !');
+  showToast('✨ Surligné !');
 }
 
 // Add note to selection
@@ -1319,7 +1439,16 @@ function addNote() {
   
   const textEl = document.getElementById('book-text');
   const fullText = textEl.textContent;
-  const start = fullText.indexOf(selectedText);
+  
+  let start = -1;
+  if (selectedRange) {
+    const preRange = document.createRange();
+    preRange.selectNodeContents(textEl);
+    preRange.setEnd(selectedRange.startContainer, selectedRange.startOffset);
+    start = preRange.toString().length;
+  } else {
+    start = fullText.indexOf(selectedText);
+  }
   
   if (start === -1) return;
   
@@ -1335,9 +1464,10 @@ function addNote() {
   
   saveAnnotations();
   hideHighlightMenu();
-  window.getSelection().removeAllRanges();
+  if (selectedRange) window.getSelection().removeAllRanges();
+  selectedText = '';
+  selectedRange = null;
   renderChapter();
-  
   showToast('📝 Note ajoutée !');
 }
 
