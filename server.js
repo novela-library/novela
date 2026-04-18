@@ -56,7 +56,7 @@ async function readUsersDB() {
 async function addUserDB(user) {
   if (!SUPABASE_KEY) { const u = readUsersLocal(); u.push(user); writeUsersLocal(u); return; }
   try {
-    await supaFetch('POST', 'users', { name: user.name, email: user.email, pass: user.pass, verified: true, twofa: false });
+    await supaFetch('POST', 'users', { name: user.name, username: user.username || '', email: user.email, pass: user.pass, verified: true, twofa: false });
   } catch(e) { console.log('Supabase add error:', e.message); }
 }
 
@@ -661,6 +661,14 @@ const server = http.createServer(async (req, res) => {
     if (body.pass) users[idx].pass = body.pass;
     if (body.banned !== undefined) users[idx].banned = body.banned;
     writeUsers(users);
+    // Sync to Supabase
+    const updates = {};
+    if (body.name) updates.name = body.name;
+    if (body.username !== undefined) updates.username = body.username;
+    if (body.email) updates.email = body.email;
+    if (body.pass) updates.pass = body.pass;
+    if (body.banned !== undefined) updates.banned = body.banned;
+    await updateUserDB(id, updates).catch(() => {});
     sendJSON(res, 200, { success: true });
     return;
   }
