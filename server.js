@@ -63,9 +63,16 @@ async function addUserDB(user) {
 async function updateUserDB(id, updates) {
   if (!SUPABASE_KEY) return;
   try {
-    const r = await supaFetch('PATCH', `users?id=eq.${id}`, updates);
-    console.log('Supabase update result:', r.status, JSON.stringify(r.data));
-    // Invalidate cache so next login reads fresh data
+    // Only send columns that exist in Supabase schema
+    const allowed = {};
+    if (updates.name !== undefined) allowed.name = updates.name;
+    if (updates.email !== undefined) allowed.email = updates.email;
+    if (updates.pass !== undefined) allowed.pass = updates.pass;
+    if (updates.twofa !== undefined) allowed.twofa = updates.twofa;
+    // username and banned are stored locally only (not in Supabase schema yet)
+    if (Object.keys(allowed).length === 0) return;
+    const r = await supaFetch('PATCH', `users?id=eq.${id}`, allowed);
+    console.log('Supabase update result:', r.status);
     usersCache = null;
   } catch(e) { console.log('Supabase update error:', e.message); }
 }
