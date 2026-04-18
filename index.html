@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Novela</title>
+  <link rel="icon" type="image/png" href="logo.png"/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#07080f"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <link rel="apple-touch-icon" href="logo.png"/>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+
+<!-- AUTH OVERLAY -->
+<div id="auth-overlay" class="overlay active">
+  <div class="auth-box">
+    <div class="auth-logo"><img src="logo.png" class="site-logo-img" alt="Novela"/> Novela</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Connexion</button>
+      <button class="auth-tab" onclick="switchTab('register')">Inscription</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="login-form">
+      <input type="email" id="login-email" placeholder="Email" />
+      <input type="password" id="login-password" placeholder="Mot de passe" />
+      <button class="btn-primary" onclick="login()">Sign in</button>
+      <p style="text-align:center;margin-top:10px;font-size:.82rem">
+        <button onclick="showForgotPassword()" style="background:none;border:none;color:var(--accent3);cursor:pointer;font-size:.82rem">Forgot password?</button>
+      </p>
+      <p id="login-error" class="error-msg"></p>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="register-form" style="display:none">
+      <input type="text" id="reg-name" placeholder="Nom complet" />
+      <input type="email" id="reg-email" placeholder="Email" />
+      <input type="password" id="reg-password" placeholder="Mot de passe" />
+      <button class="btn-primary" onclick="register()">Créer un compte</button>
+      <p id="reg-error" class="error-msg"></p>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+
+  <!-- TOPBAR — logo + langues + compte -->
+  <nav class="navbar">
+    <div class="navbar-left">
+      <button class="hamburger-btn" id="hamburger-btn" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars" id="hamburger-icon"></i>
+      </button>
+      <div class="nav-logo" onclick="showPage('home')" style="cursor:pointer">
+        <img src="logo.png" class="site-logo-img" alt="Novela"/> Novela
+      </div>
+    </div>
+    <div class="nav-user">
+      <div class="lang-dropdown" id="lang-dropdown">
+        <button class="lang-active-btn" onclick="toggleLangDropdown(event)" id="lang-active-btn">
+          🇫🇷 FR <i class="fas fa-chevron-down" id="lang-chevron"></i>
+        </button>
+        <div class="lang-dropdown-menu" id="lang-dropdown-menu">
+          <button onclick="setLang('fr');toggleLangDropdown()" id="lang-fr">🇫🇷 FR</button>
+          <button onclick="setLang('en');toggleLangDropdown()" id="lang-en">🇬🇧 EN</button>
+          <button onclick="setLang('ar');toggleLangDropdown()" id="lang-ar">🇸🇦 AR</button>
+          <button onclick="setLang('es');toggleLangDropdown()" id="lang-es">🇪🇸 ES</button>
+        </div>
+      </div>
+      <button class="profile-nav-btn" onclick="showPage('profile')" id="profile-nav-btn">
+        <div class="profile-nav-avatar" id="profile-nav-avatar">?</div>
+        <span id="nav-username"></span>
+      </button>
+      <button class="btn-logout" onclick="logout()" title="Déconnexion"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+  </nav>
+
+  <!-- SIDEBAR (desktop) -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo" onclick="showPage('home')">
+      <img src="logo.png" style="width:24px;height:24px;object-fit:contain;-webkit-text-fill-color:initial" alt=""/>
+      <span class="sidebar-logo-text">Novela</span>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="sidebar-btn active" id="sb-home" onclick="showPage('home')">
+        <i class="fas fa-home"></i><span data-i18n="nav_home">Accueil</span>
+      </button>
+      <button class="sidebar-btn" id="sb-library" onclick="showPage('library')">
+        <i class="fas fa-book-open"></i><span data-i18n="nav_library">Bibliothèque</span>
+      </button>
+      <button class="sidebar-btn" id="sb-quiz" onclick="showPage('quiz')">
+        <i class="fas fa-question-circle"></i><span data-i18n="nav_quiz">Quiz</span>
+      </button>
+      <button class="sidebar-btn" id="sb-ai" onclick="showPage('ai')">
+        <i class="fas fa-robot"></i><span data-i18n="nav_ai">IA Assistant</span>
+      </button>
+      <button class="sidebar-btn" id="sb-history" onclick="showPage('history')">
+        <i class="fas fa-history"></i><span data-i18n="nav_history">Historique</span>
+      </button>
+      <button class="sidebar-btn" id="sb-scoreboard" onclick="showPage('scoreboard')">
+        <i class="fas fa-trophy"></i><span>Classement</span>
+      </button>
+      <button class="sidebar-btn" id="sb-community" onclick="showPage('community')">
+        <i class="fas fa-users"></i><span data-i18n="nav_community">Communauté</span>
+      </button>
+    </nav>
+  </aside>
+
+  <!-- MOBILE MENU OVERLAY + SLIDE MENU -->
+  <div class="mobile-menu-overlay" id="mobile-overlay" onclick="closeMobileMenu()"></div>
+  <div class="mobile-slide-menu" id="nav-links">
+    <button class="nav-btn active" onclick="showPage('home');closeMobileMenu()"><i class="fas fa-home"></i> <span data-i18n="nav_home">Accueil</span></button>
+    <button class="nav-btn" onclick="showPage('library');closeMobileMenu()"><i class="fas fa-book-open"></i> <span data-i18n="nav_library">Bibliothèque</span></button>
+    <button class="nav-btn" onclick="showPage('quiz');closeMobileMenu()"><i class="fas fa-question-circle"></i> <span data-i18n="nav_quiz">Quiz</span></button>
+    <button class="nav-btn" onclick="showPage('ai');closeMobileMenu()"><i class="fas fa-robot"></i> <span data-i18n="nav_ai">IA</span></button>
+    <button class="nav-btn" onclick="showPage('history');closeMobileMenu()"><i class="fas fa-history"></i> <span data-i18n="nav_history">Historique</span></button>
+    <button class="nav-btn" onclick="showPage('scoreboard');closeMobileMenu()"><i class="fas fa-trophy"></i> <span>Classement</span></button>
+    <button class="nav-btn" onclick="showPage('community');closeMobileMenu()"><i class="fas fa-users"></i> <span data-i18n="nav_community">Communauté</span></button>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content" id="main-content">
+
+  <!-- HOME PAGE -->
+  <div id="page-home" class="page active">
+
+    <!-- CONTINUE READING -->
+    <div id="continue-reading-section" style="display:none;margin-bottom:32px">
+      <div class="section-header">
+        <h2><i class="fas fa-book-reader" style="color:var(--accent3)"></i> Continuer la lecture</h2>
+      </div>
+      <div class="continue-grid" id="continue-grid"></div>
+    </div>
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-bg-particles" id="hero-particles"></div>
+      <div class="hero-content">
+        <div class="hero-badge">✨ Votre bibliothèque universelle</div>
+        <h1 data-i18n="hero_title">Bienvenue sur<br><span>Novela</span></h1>
+        <p data-i18n="hero_sub">Des milliers de livres, un assistant IA, et des quiz pour tester vos connaissances.</p>
+        <div class="hero-btns">
+          <button class="btn-primary" onclick="showPage('library')"><i class="fas fa-search"></i> <span data-i18n="hero_explore">Explorer les livres</span></button>
+          <button class="btn-secondary" onclick="showPage('ai')"><i class="fas fa-robot"></i> <span data-i18n="hero_ai">Parler à l'IA</span></button>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><span>70 000+</span><p>Livres</p></div>
+        <div class="stat"><span>50+</span><p>Genres</p></div>
+        <div class="stat"><span id="hero-streak">0</span><p>🔥 Jours</p></div>
+      </div>
+    </div>
+
+    <!-- STREAK + BADGES -->
+    <div class="achievements-bar" id="achievements-bar">
+      <div class="streak-card" id="streak-card">
+        <div class="streak-fire">🔥</div>
+        <div>
+          <div class="streak-num" id="streak-num">0</div>
+          <div class="streak-label">jours de suite</div>
+        </div>
+      </div>
+      <div class="badges-row" id="badges-row"></div>
+    </div>
+
+    <!-- RECOMMENDED -->
+    <div id="recommended-section" style="display:none;margin-bottom:32px">
+      <div class="section-header">
+        <h2><i class="fas fa-magic" style="color:var(--pink)"></i> Recommandés pour vous</h2>
+        <span style="font-size:.8rem;color:var(--text2)">Basé sur vos lectures</span>
+      </div>
+      <div class="books-carousel" id="recommended-books"></div>
+    </div>
+
+    <!-- TRENDING -->
+    <div style="margin-bottom:32px">
+      <div class="section-header">
+        <h2><i class="fas fa-fire" style="color:var(--orange)"></i> Tendances</h2>
+      </div>
+      <div class="books-carousel" id="trending-books"></div>
+    </div>
+
+    <!-- FEATURED -->
+    <div class="featured-section">
+      <div class="section-header">
+        <h2><i class="fas fa-star" style="color:var(--accent3)"></i> Populaires</h2>
+        <button class="btn-secondary" style="font-size:.8rem;padding:6px 14px" onclick="showPage('library')">Voir tout →</button>
+      </div>
+      <div class="books-grid" id="featured-books"></div>
+    </div>
+  </div>
+
+  <!-- LIBRARY PAGE -->
+  <div id="page-library" class="page">
+    <div class="page-header">
+      <h2><i class="fas fa-book-open"></i> Bibliothèque</h2>
+      <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" id="search-input" placeholder="Rechercher parmi 70 000+ livres..." oninput="onSearchInput()" data-i18n-placeholder="search_placeholder" />
+      </div>
+    </div>
+    <div class="genre-filters" id="genre-filters"></div>
+    <div class="lang-filters-wrap">
+      <div class="lang-filters" id="lang-filters"></div>
+    </div>
+    <div class="books-grid" id="library-books"></div>
+    <div id="load-more-wrap" style="text-align:center;margin-top:32px;display:none">
+      <button class="btn-secondary" onclick="loadMoreGutenberg()"><i class="fas fa-plus"></i> Charger plus</button>
+    </div>
+  </div>
+
+  <!-- QUIZ PAGE -->
+  <div id="page-quiz" class="page">
+    <div class="page-header">
+      <h2><i class="fas fa-question-circle"></i> Quiz Littéraire</h2>
+    </div>
+
+    <!-- MENU -->
+    <div id="quiz-menu">
+      <p class="quiz-intro" data-i18n="quiz_intro">Choisissez un livre — l'IA génère un quiz unique rien que pour vous !</p>
+      <div class="search-bar" style="margin-bottom:20px;max-width:480px">
+        <i class="fas fa-search"></i>
+        <input type="text" id="quiz-search" placeholder="Chercher un livre..." oninput="filterQuizBooks()" data-i18n-placeholder="search_book" />
+      </div>
+      <div class="books-grid" id="quiz-books-grid"></div>
+      <div style="text-align:center;margin-top:24px">
+        <button id="quiz-load-more" class="btn-secondary" style="display:none" onclick="loadMoreQuizBooks()"><i class="fas fa-plus"></i> Plus de livres</button>
+      </div>
+      <div class="quiz-divider"><span>ou une catégorie classique</span></div>
+      <div class="quiz-categories" id="quiz-categories"></div>
+    </div>
+
+    <!-- LOADING -->
+    <div id="quiz-loading" style="display:none">
+      <div class="quiz-loading-box">
+        <div class="quiz-spinner"></div>
+        <p>L'IA génère votre quiz sur <strong id="quiz-book-name"></strong>...</p>
+        <p style="color:var(--text2);font-size:0.85rem;margin-top:8px">Cela prend quelques secondes</p>
+      </div>
+    </div>
+
+    <!-- JEU -->
+    <div id="quiz-game" style="display:none">
+      <div class="quiz-header">
+        <span id="quiz-category-title"></span>
+        <span id="quiz-progress"></span>
+        <span id="quiz-score-display">Score: 0</span>
+      </div>
+      <div class="quiz-card">
+        <p id="quiz-question"></p>
+        <div id="quiz-options" class="quiz-options"></div>
+        <div id="quiz-feedback" class="quiz-feedback"></div>
+        <button id="quiz-next-btn" class="btn-primary" style="display:none" onclick="nextQuestion()">Question suivante →</button>
+      </div>
+    </div>
+
+    <!-- RÉSULTAT -->
+    <div id="quiz-result" style="display:none">
+      <div class="result-card">
+        <div class="result-icon" id="result-icon"></div>
+        <h3 id="result-title"></h3>
+        <p id="result-score"></p>
+        <p id="result-msg"></p>
+        <button class="btn-primary" onclick="resetQuiz()">Rejouer</button>
+        <button class="btn-secondary" onclick="backToQuizMenu()">Choisir un autre livre</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI PAGE -->
+  <div id="page-ai" class="page">
+    <div class="page-header">
+      <h2><i class="fas fa-robot"></i> IA Assistant Littéraire</h2>
+    </div>
+    <div class="ai-container">
+      <div class="ai-suggestions">
+        <p>Suggestions :</p>
+        <button onclick="askAI('Recommande-moi un livre de science-fiction selon mes goûts')">📚 Livre SF</button>
+        <button onclick="askAI('Fais une analyse approfondie de 1984 de George Orwell')">📖 Analyse 1984</button>
+        <button onclick="askAI('Quels sont les 5 meilleurs classiques de la littérature française à lire absolument ?')">🇫🇷 Top classiques</button>
+        <button onclick="askAI('Explique-moi le mouvement surréaliste en littérature avec des exemples')">🎭 Surréalisme</button>
+        <button onclick="askAI('Compare Dune de Frank Herbert et Le Seigneur des Anneaux de Tolkien')">⚔️ Dune vs Tolkien</button>
+      </div>
+      <div class="chat-window" id="chat-window">
+        <div class="chat-msg ai">
+          <div class="chat-avatar"><i class="fas fa-robot"></i></div>
+          <div class="chat-bubble">Bonjour ! Je suis votre assistant littéraire. Posez-moi des questions sur des livres, des auteurs, des genres, ou demandez-moi des recommandations personnalisées !</div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <input type="text" id="chat-input" placeholder="Posez votre question..." onkeydown="if(event.key==='Enter') sendMessage()" data-i18n-placeholder="chat_placeholder" />
+        <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCOREBOARD PAGE -->
+  <div id="page-scoreboard" class="page">
+    <div class="page-header">
+      <h2><i class="fas fa-trophy"></i> Classement</h2>
+    </div>
+    <div class="scoreboard-tabs">
+      <button class="sb-tab active" onclick="switchSbTab('quiz')"><i class="fas fa-question-circle"></i> Quiz</button>
+      <button class="sb-tab" onclick="switchSbTab('books')"><i class="fas fa-book-open"></i> Livres lus</button>
+    </div>
+    <div id="sb-quiz-panel" class="sb-panel active">
+      <div class="sb-my-score" id="sb-my-quiz"></div>
+      <div class="sb-list" id="sb-quiz-list"></div>
+    </div>
+    <div id="sb-books-panel" class="sb-panel">
+      <div class="sb-my-score" id="sb-my-books"></div>
+      <div class="sb-list" id="sb-books-list"></div>
+    </div>
+  </div>
+
+  <!-- HISTORY PAGE -->
+  <div id="page-history" class="page">
+    <div class="page-header">
+      <h2><i class="fas fa-history"></i> Mon Historique</h2>
+      <button class="btn-secondary" onclick="clearHistory()" style="font-size:0.82rem;padding:8px 16px">
+        <i class="fas fa-trash"></i> Effacer
+      </button>
+    </div>
+    <div id="history-content"></div>
+  </div>
+
+  <!-- PROFILE PAGE -->
+  <div id="page-profile" class="page">
+    <div class="profile-layout">
+
+      <!-- LEFT: Profile card -->
+      <div class="profile-sidebar">
+        <div class="profile-card">
+          <div class="profile-avatar-wrap">
+            <div class="profile-avatar" id="profile-avatar-display">?</div>
+            <label class="avatar-upload-btn" title="Changer la photo">
+              <i class="fas fa-camera"></i>
+              <input type="file" id="avatar-upload" accept="image/*" onchange="uploadAvatar(this)" style="display:none"/>
+            </label>
+          </div>
+          <h2 class="profile-name" id="profile-name-display">—</h2>
+          <p class="profile-email" id="profile-email-display">—</p>
+          <p class="profile-bio" id="profile-bio-display" data-i18n-default="prof_no_bio">Aucune bio</p>
+          <div class="profile-stats-row">
+            <div class="pstat"><span id="pstat-read">0</span><p data-i18n="prof_read">Lus</p></div>
+            <div class="pstat"><span id="pstat-fav">0</span><p data-i18n="prof_favs">Favoris</p></div>
+            <div class="pstat"><span id="pstat-later">0</span><p data-i18n="prof_later">À lire</p></div>
+          </div>
+          <div class="profile-public-toggle">
+            <label class="toggle-label">
+              <input type="checkbox" id="profile-public-toggle" onchange="togglePublicProfile(this.checked)"/>
+              <span class="toggle-slider"></span>
+              <span data-i18n="prof_public">Profil public</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Tabs -->
+      <div class="profile-main">
+        <div class="profile-tabs">
+          <button class="ptab active" onclick="switchProfileTab('edit')"><i class="fas fa-edit"></i> <span data-i18n="prof_tab_edit">Modifier</span></button>
+          <button class="ptab" onclick="switchProfileTab('favorites')"><i class="fas fa-heart"></i> <span data-i18n="prof_tab_fav">Favoris</span></button>
+          <button class="ptab" onclick="switchProfileTab('later')"><i class="fas fa-clock"></i> <span data-i18n="prof_tab_later">À lire</span></button>
+          <button class="ptab" onclick="switchProfileTab('history')"><i class="fas fa-history"></i> <span data-i18n="prof_tab_hist">Historique</span></button>
+        </div>
+
+        <!-- EDIT TAB -->
+        <div class="ptab-content active" id="ptab-edit">
+          <div class="profile-form">
+            <h3 data-i18n="prof_personal_info">Informations personnelles</h3>
+            <div class="form-row">
+              <label data-i18n="prof_fullname">Nom complet</label>
+              <input type="text" id="pf-name" data-i18n-placeholder="prof_name_ph"/>
+            </div>
+            <div class="form-row">
+              <label>Email</label>
+              <input type="email" id="pf-email" placeholder="Email"/>
+            </div>
+            <div class="form-row">
+              <label data-i18n="prof_bio_label">Bio</label>
+              <textarea id="pf-bio" data-i18n-placeholder="prof_bio_ph" maxlength="200" rows="3"></textarea>
+            </div>
+            <div class="form-row">
+              <label data-i18n="prof_current_pass">Mot de passe actuel</label>
+              <input type="password" id="pf-pass-current" data-i18n-placeholder="prof_current_pass_ph"/>
+            </div>
+            <div class="form-row">
+              <label data-i18n="prof_new_pass">Nouveau mot de passe</label>
+              <input type="password" id="pf-pass" data-i18n-placeholder="prof_new_pass_ph"/>
+            </div>
+            <div class="form-row">
+              <label data-i18n="prof_fav_genres">Genres favoris</label>
+              <div class="genre-chips" id="fav-genres-chips"></div>
+            </div>
+            <button class="btn-primary" style="width:auto;margin-top:8px" onclick="saveProfile()">
+              <i class="fas fa-save"></i> <span data-i18n="prof_save">Save</span>
+            </button>
+            <div style="margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.06)">
+              <h3 style="font-size:.95rem;font-weight:700;margin-bottom:14px" data-i18n="prof_security">🔐 Security</h3>
+              <label class="toggle-label" style="justify-content:flex-start;gap:12px">
+                <input type="checkbox" id="twofa-toggle" onchange="toggle2FA(this.checked)"/>
+                <span class="toggle-slider"></span>
+                <span data-i18n="prof_2fa" style="font-size:.88rem;color:var(--text2)">Two-factor authentication (2FA) — receive a code by email at each login</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAVORITES TAB -->
+        <div class="ptab-content" id="ptab-favorites">
+          <div class="books-grid" id="profile-favorites-grid"></div>
+          <p class="empty-tab" id="fav-empty" style="display:none">
+            <i class="fas fa-heart"></i><br><span data-i18n="prof_fav_empty">Aucun favori. Cliquez sur ❤️ sur un livre pour l'ajouter.</span>
+          </p>
+        </div>
+
+        <!-- READ LATER TAB -->
+        <div class="ptab-content" id="ptab-later">
+          <div class="books-grid" id="profile-later-grid"></div>
+          <p class="empty-tab" id="later-empty" style="display:none">
+            <i class="fas fa-clock"></i><br><span data-i18n="prof_later_empty">Aucun livre à lire plus tard.</span>
+          </p>
+        </div>
+
+        <!-- HISTORY TAB -->
+        <div class="ptab-content" id="ptab-history">
+          <div class="history-grid" id="profile-history-grid"></div>
+          <p class="empty-tab" id="hist-empty" style="display:none">
+            <i class="fas fa-history"></i><br><span data-i18n="prof_hist_empty">Aucun livre lu.</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMUNITY PAGE -->
+  <div id="page-community" class="page">
+    <div class="community-layout" id="community-layout">
+
+      <!-- SIDEBAR: liste des groupes -->
+      <div class="community-sidebar" id="community-sidebar">
+        <div class="community-sidebar-header">
+          <h3><i class="fas fa-users"></i> <span data-i18n="nav_community">Communauté</span></h3>
+          <button class="create-group-btn" onclick="openCreateGroup()"><i class="fas fa-plus"></i></button>
+        </div>
+        <div class="group-search-wrap">
+          <input type="text" id="group-search" placeholder="Chercher un groupe..." oninput="filterGroups()" />
+        </div>
+        <div id="groups-list"></div>
+      </div>
+
+      <!-- MAIN: chat du groupe actif -->
+      <div class="community-main" id="community-main">
+        <div class="community-welcome" id="community-welcome">
+          <div style="font-size:3rem;margin-bottom:16px">💬</div>
+          <h2 data-i18n="comm_welcome_title">Rejoignez une communauté</h2>
+          <p data-i18n="comm_welcome_sub">Choisissez un groupe à gauche pour commencer à discuter avec d'autres lecteurs.</p>
+        </div>
+
+        <!-- GROUP CHAT -->
+        <div class="group-chat" id="group-chat" style="display:none">
+          <div class="group-chat-header" id="group-chat-header">
+            <div class="group-chat-info">
+              <div class="group-icon-sm" id="chat-group-icon"></div>
+              <div>
+                <div class="group-chat-name" id="chat-group-name"></div>
+                <div class="group-chat-members" id="chat-group-members"></div>
+              </div>
+            </div>
+            <div class="group-chat-actions">
+              <button class="group-action-btn" id="join-leave-btn" onclick="toggleJoinGroup()"></button>
+            </div>
+          </div>
+          <div class="group-messages" id="group-messages"></div>
+          <div class="group-input-area" id="group-input-area">
+            <input type="text" id="group-msg-input" placeholder="Écrire un message..." onkeydown="if(event.key==='Enter')sendGroupMessage()" />
+            <button onclick="sendGroupMessage()"><i class="fas fa-paper-plane"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </main><!-- end main-content -->
+
+  <!-- CREATE GROUP MODAL -->
+  <div class="modal-overlay" id="create-group-modal" onclick="if(event.target.id==='create-group-modal')closeCreateGroup()">
+    <div class="modal-box" style="max-width:460px">
+      <button class="modal-close" onclick="closeCreateGroup()"><i class="fas fa-times"></i></button>
+      <h3 style="font-size:1.2rem;font-weight:800;margin-bottom:20px"><i class="fas fa-plus-circle" style="color:var(--accent3)"></i> Créer un groupe</h3>
+      <div class="form-row">
+        <label>Nom du groupe</label>
+        <input type="text" id="new-group-name" placeholder="Ex: Fans de Fantasy" maxlength="40"/>
+      </div>
+      <div class="form-row">
+        <label>Description</label>
+        <textarea id="new-group-desc" placeholder="De quoi parle ce groupe ?" rows="2" maxlength="120"></textarea>
+      </div>
+      <div class="form-row">
+        <label>Photo du groupe</label>
+        <div class="group-photo-upload" id="group-photo-preview" onclick="document.getElementById('group-photo-input').click()">
+          <span id="group-photo-placeholder"><i class="fas fa-camera"></i><br>Cliquer pour ajouter une photo</span>
+          <img id="group-photo-img" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:12px"/>
+        </div>
+        <input type="file" id="group-photo-input" accept="image/*" style="display:none" onchange="previewGroupPhoto(this)"/>
+      </div>
+      <div class="form-row">
+        <label>Icône (emoji) <span style="color:var(--text2);font-weight:400">— utilisé si pas de photo</span></label>
+        <input type="text" id="new-group-icon" placeholder="📚" maxlength="2" style="width:80px;text-align:center;font-size:1.5rem"/>
+      </div>
+      <div class="form-row">
+        <label>Catégorie</label>
+        <select id="new-group-cat" style="width:100%;padding:11px 14px;background:var(--bg3);border:1.5px solid rgba(255,255,255,.07);border-radius:var(--radius);color:var(--text);font-size:.9rem;outline:none">
+          <option value="genre">Genre littéraire</option>
+          <option value="author">Auteur</option>
+          <option value="book">Livre spécifique</option>
+          <option value="general">Général</option>
+          <option value="language">Langue</option>
+        </select>
+      </div>
+      <button class="btn-primary" style="margin-top:8px" onclick="createGroup()"><i class="fas fa-plus"></i> Créer le groupe</button>
+    </div>
+  </div>
+
+  <!-- API KEY MODAL -->
+  <div id="api-key-modal" class="modal-overlay" onclick="if(event.target.id==='api-key-modal')closeApiKeyModal()">
+    <div class="modal-box" style="max-width:480px">
+      <button class="modal-close" onclick="closeApiKeyModal()"><i class="fas fa-times"></i></button>
+      <h3 style="font-family:'Playfair Display',serif;margin-bottom:8px"><i class="fas fa-robot" style="color:var(--accent)"></i> Configurer Gemini AI</h3>
+      <p style="color:var(--text2);font-size:0.9rem;margin-bottom:20px">Entrez votre clé API Google Gemini pour activer l'IA. Elle est gratuite et disponible sur <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com</a>.</p>
+      <input type="password" id="api-key-input" placeholder="AIza..." style="width:100%;padding:12px 16px;background:var(--bg3);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:var(--text);font-size:0.95rem;outline:none;margin-bottom:12px" />
+      <p style="color:var(--text2);font-size:0.8rem;margin-bottom:16px">🔒 Votre clé est stockée uniquement dans votre navigateur (localStorage).</p>
+      <button class="btn-primary" onclick="saveApiKey()">Activer l'IA</button>
+    </div>
+  </div>
+
+  <!-- BOOK MODAL -->
+  <div id="book-modal" class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeBookModal()"><i class="fas fa-times"></i></button>
+      <div class="modal-content" id="modal-content"></div>
+    </div>
+  </div>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+    <button class="mobile-nav-item active" onclick="showPage('home');closeMobileMenu()" id="mob-home">
+      <i class="fas fa-home"></i><span data-i18n="nav_home">Accueil</span>
+    </button>
+    <button class="mobile-nav-item" onclick="showPage('library');closeMobileMenu()" id="mob-library">
+      <i class="fas fa-book-open"></i><span data-i18n="nav_library">Biblio</span>
+    </button>
+    <button class="mobile-nav-item" onclick="showPage('quiz');closeMobileMenu()" id="mob-quiz">
+      <i class="fas fa-question-circle"></i><span data-i18n="nav_quiz">Quiz</span>
+    </button>
+    <button class="mobile-nav-item" onclick="showPage('ai');closeMobileMenu()" id="mob-ai">
+      <i class="fas fa-robot"></i><span>IA</span>
+    </button>
+    <button class="mobile-nav-item" onclick="showPage('profile');closeMobileMenu()" id="mob-profile">
+      <i class="fas fa-user"></i><span>Profil</span>
+    </button>
+  </nav>
+
+</div>
+
+<script src="app.js"></script>
+<script>
+  // Register service worker for PWA
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+</script>
+</body>
+</html>

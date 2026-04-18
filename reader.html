@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Lecture - Novela</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="reader.css"/>
+</head>
+<body>
+<div id="reader-app" class="theme-dark">
+
+  <!-- TOP BAR -->
+  <nav class="reader-topbar" id="reader-topbar">
+    <div class="topbar-left">
+      <button class="topbar-btn" onclick="goBack()" title="Retour à Novela">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <div class="topbar-book-info" id="topbar-book-info">
+        <span class="topbar-title" id="topbar-title">Chargement...</span>
+        <span class="topbar-author" id="topbar-author"></span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="topbar-btn bookmark-btn" id="bookmark-btn" onclick="toggleBookmark()" title="Marque-page">
+        <i class="far fa-bookmark" id="bookmark-icon"></i>
+      </button>
+      <button class="topbar-btn" onclick="toggleSettings()" title="Paramètres">
+        <i class="fas fa-cog"></i>
+      </button>
+      <button class="topbar-btn" onclick="toggleToc()" title="Chapitres">
+        <i class="fas fa-list"></i>
+      </button>
+      <button class="topbar-btn" onclick="clearCacheAndReload()" title="Vider le cache / Clear cache" style="font-size:.75rem;color:var(--text3)">
+        <i class="fas fa-sync-alt"></i>
+      </button>
+      <button class="topbar-btn focus-btn" onclick="toggleFocusMode()" title="Mode focus" id="focus-btn">
+        <i class="fas fa-expand"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- PROGRESS BAR -->
+  <div class="reading-progress-wrap">
+    <div class="reading-progress-bar" id="reading-progress-bar"></div>
+  </div>
+
+  <!-- SETTINGS PANEL -->
+  <div class="settings-panel" id="settings-panel">
+    <div class="settings-title"><i class="fas fa-sliders-h"></i> Paramètres de lecture</div>
+    <div class="setting-row">
+      <span>Taille du texte</span>
+      <div class="size-controls">
+        <button onclick="changeFontSize(-1)">A-</button>
+        <span id="font-size-val">18</span>
+        <button onclick="changeFontSize(1)">A+</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <span>Largeur</span>
+      <div class="size-controls">
+        <button onclick="changeWidth(-60)"><i class="fas fa-compress-alt"></i></button>
+        <button onclick="changeWidth(60)"><i class="fas fa-expand-alt"></i></button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <span>Interligne</span>
+      <div class="size-controls">
+        <button onclick="changeLineHeight(-0.1)">-</button>
+        <span id="line-height-val">1.8</span>
+        <button onclick="changeLineHeight(0.1)">+</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <span>Thème</span>
+      <div class="theme-btns">
+        <button class="theme-btn active" id="btn-dark" onclick="setTheme('dark')">🌙 Sombre</button>
+        <button class="theme-btn" id="btn-sepia" onclick="setTheme('sepia')">📜 Sépia</button>
+        <button class="theme-btn" id="btn-light" onclick="setTheme('light')">☀️ Clair</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <span>Police</span>
+      <div class="theme-btns">
+        <button class="theme-btn active" id="btn-lora" onclick="setFont('Lora')">Lora</button>
+        <button class="theme-btn" id="btn-inter" onclick="setFont('Inter')">Inter</button>
+        <button class="theme-btn" id="btn-georgia" onclick="setFont('Georgia')">Georgia</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc-overlay" id="toc-overlay" onclick="toggleToc()"></div>
+  <div class="toc-panel" id="toc-panel">
+    <div class="toc-header">
+      <span><i class="fas fa-list"></i> Chapitres</span>
+      <button onclick="toggleToc()"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="toc-list"></div>
+  </div>
+
+  <!-- MAIN READING AREA -->
+  <main class="reader-main" id="reader-main">
+    <div class="reader-container" id="reader-container">
+
+      <!-- Book header -->
+      <div class="book-header-section" id="book-header-section"></div>
+
+      <!-- Chapter navigation top -->
+      <div class="chapter-nav" id="chapter-nav-top">
+        <button class="nav-chapter-btn" id="prev-btn" onclick="prevChapter()">
+          <i class="fas fa-chevron-left"></i> Précédent
+        </button>
+        <span class="chapter-counter" id="chapter-counter"></span>
+        <span class="reader-time-left" id="reading-time"></span>
+        <button class="nav-chapter-btn" id="next-btn" onclick="nextChapter()">
+          Suivant <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <!-- Chapter title -->
+      <h2 class="chapter-title" id="chapter-title"></h2>
+
+      <!-- Text content -->
+      <div class="book-text" id="book-text"></div>
+
+      <!-- Chapter navigation bottom -->
+      <div class="chapter-nav chapter-nav-bottom">
+        <button class="nav-chapter-btn" onclick="prevChapter()">
+          <i class="fas fa-chevron-left"></i> Précédent
+        </button>
+        <button class="nav-chapter-btn primary" onclick="nextChapter()">
+          Suivant <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- TOAST -->
+  <div class="reader-toast" id="reader-toast"></div>
+  <!-- DICT TOOLTIP -->
+  <div class="dict-tooltip" id="dict-tooltip"></div>
+
+</div>
+<script src="app.js"></script>
+<script src="book_texts.js"></script>
+<script src="reader.js"></script>
+</body>
+</html>
