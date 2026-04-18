@@ -1025,3 +1025,550 @@ function clearCacheAndReload() {
   Object.keys(localStorage).filter(k => k.startsWith('fulltext_')).forEach(k => localStorage.removeItem(k));
   window.location.reload();
 }
+
+
+// ===== ANNOTATIONS SYSTEM =====
+let annotations = {};
+let selectedText = '';
+let selectedRange = null;
+
+// Load annotations for current book
+function loadAnnotations() {
+  const bookKey = book.gutId ? 'g' + book.gutId : 'b' + bookId;
+  const session = JSON.parse(localStorage.getItem('biblio_session') || 'null');
+  if (!session) return;
+  
+  const key = 'annotations_' + session.email + '_' + bookKey;
+  annotations = JSON.parse(localStorage.getItem(key) || '{}');
+  applyAnnotations();
+}
+
+// Save annotations
+function saveAnnotations() {
+  const bookKey = book.gutId ? 'g' + book.gutId : 'b' + bookId;
+  const session = JSON.parse(localStorage.getItem('biblio_session') || 'null');
+  if (!session) return;
+  
+  const key = 'annotations_' + session.email + '_' + bookKey;
+  localStorage.setItem(key, JSON.stringify(annotations));
+}
+
+// Apply highlights to text
+function applyAnnotations() {
+  const chapterKey = 'ch' + currentChapter;
+  if (!annotations[chapterKey]) return;
+  
+  const textEl = document.getElementById('book-text');
+  let html = textEl.innerHTML;
+  
+  // Sort by position (reverse to avoid offset issues)
+  const sorted = Object.entries(annotations[chapterKey]).sort((a, b) => b[1].start - a[1].start);
+  
+  sorted.forEach(([id, ann]) => {
+    const color = ann.color || 'yellow';
+    const colorMap = {
+      yellow: 'rgba(255, 235, 59, 0.4)',
+      green: 'rgba(76, 175, 80, 0.4)',
+      pink: 'rgba(244, 114, 182, 0.4)',
+      blue: 'rgba(33, 150, 243, 0.4)'
+    };
+    
+    // Find and wrap the text
+    const paras = textEl.querySelectorAll('p');
+    let charCount = 0;
+    
+    for (let p of paras) {
+      const pText = p.textContent;
+      const pStart = charCount;
+      const pEnd = charCount + pText.length;
+      
+      if (ann.start >= pStart && ann.start < pEnd) {
+        const localStart = ann.start - pStart;
+        const localEnd = Math.min(ann.end - pStart, pText.length);
+        
+        const before = pText.substring(0, localStart);
+        const highlighted = pText.substring(localStart, localEnd);
+        const after = pText.substring(localEnd);
+        
+        p.innerHTML = before + 
+          `<mark class="highlight" data-id="${id}" data-color="${color}" style="background:${colorMap[color]};cursor:pointer;border-radius:3px;padding:2px 0" onclick="showAnnotationMenu('${id}')">${highlighted}</mark>` + 
+          after;
+        break;
+      }
+      
+      charCount += pText.length + 1; // +1 for space between paragraphs
+    }
+  });
+}
+
+// Text selection handler
+document.addEventListener('mouseup', handleTextSelection);
+document.addEventListener('touchend', handleTextSelection);
+
+function handleTextSelection(e) {
+  const selection = window.getSelection();
+  const text = selection.toString().trim();
+  
+  if (text.length > 0 && text.length < 500) {
+    selectedText = text;
+    selectedRange = selection.getRangeAt(0);
+    showHighlightMenu(e);
+  } else {
+    hideHighlightMenu();
+  }
+}
+
+// Show highlight menu
+function showHighlightMenu(e) {
+  let menu = document.getElementById('highlight-menu');
+  if (!menu) {
+    menu = document.createElement('div');
+    menu.id = 'highlight-menu';
+    menu.className = 'highlight-menu';
+    menu.innerHTML = `
+      <button onclick="highlightText('yellow')" style="background:#ffeb3b" title="Jaune">🟡</button>
+      <button onclick="highlightText('green')" style="background:#4caf50" title="Vert">🟢</button>
+      <button onclick="highlightText('pink')" style="background:#f472b6" title="Rose">🔴</button>
+      <button onclick="highlightText('blue')" style="background:#2196f3" title="Bleu">🔵</button>
+      <button onclick="addNote()" title="Ajouter une note">📝</button>
+      <button onclick="addBookmark()" title="Marque-page">🔖</button>
+    `;
+    document.body.appendChild(menu);
+  }
+  
+  const x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+  const y = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+  
+  menu.style.left = x + 'px';
+  menu.style.top = (y - 60) + 'px';
+  menu.style.display = 'flex';
+  
+  // Hide after 5 seconds
+  setTimeout(() => hideHighlightMenu(), 5000);
+}
+
+function hideHighlightMenu() {
+  const menu = document.getElementById('highlight-menu');
+  if (menu) menu.style.display = 'none';
+}
+
+// Highlight text
+function highlightText(color) {
+  if (!selectedText || !selectedRange) return;
+  
+  const chapterKey = 'ch' + currentChapter;
+  if (!annotations[chapterKey]) annotations[chapterKey] = {};
+  
+  // Calculate position in chapter
+  const textEl = document.getElementById('book-text');
+  const fullText = textEl.textContent;
+  const start = fullText.indexOf(selectedText);
+  
+  if (start === -1) return;
+  
+  const id = 'ann_' + Date.now();
+  annotations[chapterKey][id] = {
+    text: selectedText,
+    color,
+    start,
+    end: start + selectedText.length,
+    date: Date.now()
+  };
+  
+  saveAnnotations();
+  hideHighlightMenu();
+  window.getSelection().removeAllRanges();
+  
+  // Re-render chapter to show highlight
+  renderChapter();
+  
+  // Show success toast
+  showToast('✨ Texte surligné !');
+}
+
+// Add note to selection
+function addNote() {
+  if (!selectedText) return;
+  
+  const note = prompt('Ajouter une note :', '');
+  if (!note) return;
+  
+  const chapterKey = 'ch' + currentChapter;
+  if (!annotations[chapterKey]) annotations[chapterKey] = {};
+  
+  const textEl = document.getElementById('book-text');
+  const fullText = textEl.textContent;
+  const start = fullText.indexOf(selectedText);
+  
+  if (start === -1) return;
+  
+  const id = 'ann_' + Date.now();
+  annotations[chapterKey][id] = {
+    text: selectedText,
+    color: 'yellow',
+    note,
+    start,
+    end: start + selectedText.length,
+    date: Date.now()
+  };
+  
+  saveAnnotations();
+  hideHighlightMenu();
+  window.getSelection().removeAllRanges();
+  renderChapter();
+  
+  showToast('📝 Note ajoutée !');
+}
+
+// Show annotation menu (edit/delete)
+function showAnnotationMenu(id) {
+  const chapterKey = 'ch' + currentChapter;
+  const ann = annotations[chapterKey][id];
+  if (!ann) return;
+  
+  const menu = document.createElement('div');
+  menu.className = 'annotation-menu';
+  menu.innerHTML = `
+    <div style="padding:12px;background:var(--bg2);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.5);max-width:300px">
+      <div style="font-size:.85rem;color:var(--text2);margin-bottom:8px">"${ann.text.substring(0, 60)}${ann.text.length > 60 ? '...' : ''}"</div>
+      ${ann.note ? `<div style="font-size:.9rem;color:var(--text);margin-bottom:12px;padding:8px;background:var(--bg3);border-radius:8px">📝 ${ann.note}</div>` : ''}
+      <div style="display:flex;gap:8px">
+        <button onclick="editAnnotationNote('${id}')" style="flex:1;padding:8px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.82rem">✏️ Modifier</button>
+        <button onclick="deleteAnnotation('${id}')" style="flex:1;padding:8px;background:var(--error);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.82rem">🗑️ Supprimer</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(menu);
+  
+  // Position near the highlight
+  const highlight = document.querySelector(`[data-id="${id}"]`);
+  if (highlight) {
+    const rect = highlight.getBoundingClientRect();
+    menu.style.position = 'fixed';
+    menu.style.left = rect.left + 'px';
+    menu.style.top = (rect.bottom + 10) + 'px';
+    menu.style.zIndex = '1000';
+  }
+  
+  // Close on click outside
+  setTimeout(() => {
+    document.addEventListener('click', function closeMenu(e) {
+      if (!menu.contains(e.target)) {
+        menu.remove();
+        document.removeEventListener('click', closeMenu);
+      }
+    });
+  }, 100);
+}
+
+function editAnnotationNote(id) {
+  const chapterKey = 'ch' + currentChapter;
+  const ann = annotations[chapterKey][id];
+  if (!ann) return;
+  
+  const newNote = prompt('Modifier la note :', ann.note || '');
+  if (newNote === null) return;
+  
+  ann.note = newNote;
+  saveAnnotations();
+  renderChapter();
+  
+  // Close menu
+  document.querySelectorAll('.annotation-menu').forEach(m => m.remove());
+  showToast('✏️ Note modifiée !');
+}
+
+function deleteAnnotation(id) {
+  if (!confirm('Supprimer cette annotation ?')) return;
+  
+  const chapterKey = 'ch' + currentChapter;
+  delete annotations[chapterKey][id];
+  saveAnnotations();
+  renderChapter();
+  
+  // Close menu
+  document.querySelectorAll('.annotation-menu').forEach(m => m.remove());
+  showToast('🗑️ Annotation supprimée');
+}
+
+// Bookmarks
+function addBookmark() {
+  const chapterKey = 'ch' + currentChapter;
+  const note = prompt('Note pour ce marque-page (optionnel) :', '');
+  
+  if (!annotations.bookmarks) annotations.bookmarks = [];
+  
+  annotations.bookmarks.push({
+    chapter: currentChapter,
+    chapterTitle: chapters[currentChapter].title,
+    note,
+    date: Date.now()
+  });
+  
+  saveAnnotations();
+  hideHighlightMenu();
+  window.getSelection().removeAllRanges();
+  
+  showToast('🔖 Marque-page ajouté !');
+  updateBookmarkButton();
+}
+
+function checkBookmark() {
+  const hasBookmark = annotations.bookmarks?.some(b => b.chapter === currentChapter);
+  const btn = document.getElementById('bookmark-btn');
+  if (btn) {
+    btn.innerHTML = hasBookmark ? '<i class="fas fa-bookmark"></i>' : '<i class="far fa-bookmark"></i>';
+    btn.style.color = hasBookmark ? 'var(--accent3)' : '';
+  }
+}
+
+function updateBookmarkButton() {
+  checkBookmark();
+}
+
+// Show annotations panel
+function toggleAnnotationsPanel() {
+  let panel = document.getElementById('annotations-panel');
+  
+  if (panel) {
+    panel.remove();
+    return;
+  }
+  
+  panel = document.createElement('div');
+  panel.id = 'annotations-panel';
+  panel.className = 'annotations-panel';
+  
+  // Count annotations
+  let highlightCount = 0;
+  Object.values(annotations).forEach(ch => {
+    if (typeof ch === 'object' && !Array.isArray(ch)) {
+      highlightCount += Object.keys(ch).length;
+    }
+  });
+  
+  const bookmarkCount = annotations.bookmarks?.length || 0;
+  
+  panel.innerHTML = `
+    <div class="annotations-panel-header">
+      <h3><i class="fas fa-highlighter"></i> Mes annotations</h3>
+      <button onclick="toggleAnnotationsPanel()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.2rem">×</button>
+    </div>
+    
+    <div class="annotations-tabs">
+      <button class="ann-tab active" onclick="switchAnnTab('highlights')">
+        ✨ Surlignages (${highlightCount})
+      </button>
+      <button class="ann-tab" onclick="switchAnnTab('bookmarks')">
+        🔖 Marque-pages (${bookmarkCount})
+      </button>
+    </div>
+    
+    <div id="ann-tab-highlights" class="ann-tab-content active">
+      ${renderHighlightsList()}
+    </div>
+    
+    <div id="ann-tab-bookmarks" class="ann-tab-content">
+      ${renderBookmarksList()}
+    </div>
+    
+    <div class="annotations-panel-footer">
+      <button onclick="exportAnnotations()" style="flex:1;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">
+        <i class="fas fa-download"></i> Exporter
+      </button>
+      <button onclick="clearAllAnnotations()" style="flex:1;padding:10px;background:var(--error);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600">
+        <i class="fas fa-trash"></i> Tout effacer
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(panel);
+}
+
+function renderHighlightsList() {
+  let html = '<div class="annotations-list">';
+  
+  Object.entries(annotations).forEach(([chKey, chData]) => {
+    if (chKey === 'bookmarks' || typeof chData !== 'object') return;
+    
+    const chNum = parseInt(chKey.replace('ch', ''));
+    const chTitle = chapters[chNum]?.title || `Chapitre ${chNum + 1}`;
+    
+    Object.entries(chData).forEach(([id, ann]) => {
+      const colorEmoji = {
+        yellow: '🟡',
+        green: '🟢',
+        pink: '🔴',
+        blue: '🔵'
+      }[ann.color] || '🟡';
+      
+      html += `
+        <div class="annotation-item" onclick="goToAnnotation(${chNum}, '${id}')">
+          <div class="annotation-item-header">
+            <span>${colorEmoji} ${chTitle}</span>
+            <span style="font-size:.7rem;color:var(--text3)">${new Date(ann.date).toLocaleDateString()}</span>
+          </div>
+          <div class="annotation-item-text">"${ann.text.substring(0, 100)}${ann.text.length > 100 ? '...' : ''}"</div>
+          ${ann.note ? `<div class="annotation-item-note">📝 ${ann.note}</div>` : ''}
+        </div>
+      `;
+    });
+  });
+  
+  html += '</div>';
+  return html || '<p style="text-align:center;color:var(--text2);padding:40px">Aucun surlignage</p>';
+}
+
+function renderBookmarksList() {
+  if (!annotations.bookmarks || annotations.bookmarks.length === 0) {
+    return '<p style="text-align:center;color:var(--text2);padding:40px">Aucun marque-page</p>';
+  }
+  
+  let html = '<div class="annotations-list">';
+  
+  annotations.bookmarks.forEach((bm, i) => {
+    html += `
+      <div class="annotation-item" onclick="goToChapter(${bm.chapter})">
+        <div class="annotation-item-header">
+          <span>🔖 ${bm.chapterTitle}</span>
+          <button onclick="event.stopPropagation();deleteBookmark(${i})" style="background:none;border:none;color:var(--error);cursor:pointer">🗑️</button>
+        </div>
+        ${bm.note ? `<div class="annotation-item-note">${bm.note}</div>` : ''}
+        <div style="font-size:.7rem;color:var(--text3);margin-top:4px">${new Date(bm.date).toLocaleDateString()}</div>
+      </div>
+    `;
+  });
+  
+  html += '</div>';
+  return html;
+}
+
+function switchAnnTab(tab) {
+  document.querySelectorAll('.ann-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.ann-tab-content').forEach(c => c.classList.remove('active'));
+  
+  document.querySelector(`.ann-tab[onclick*="${tab}"]`).classList.add('active');
+  document.getElementById('ann-tab-' + tab).classList.add('active');
+}
+
+function goToAnnotation(chNum, annId) {
+  currentChapter = chNum;
+  renderChapter();
+  toggleAnnotationsPanel();
+  
+  // Scroll to highlight
+  setTimeout(() => {
+    const highlight = document.querySelector(`[data-id="${annId}"]`);
+    if (highlight) {
+      highlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      highlight.style.animation = 'pulse 1s ease';
+    }
+  }, 300);
+}
+
+function deleteBookmark(index) {
+  if (!confirm('Supprimer ce marque-page ?')) return;
+  annotations.bookmarks.splice(index, 1);
+  saveAnnotations();
+  toggleAnnotationsPanel();
+  toggleAnnotationsPanel(); // Refresh
+  showToast('🗑️ Marque-page supprimé');
+}
+
+function exportAnnotations() {
+  let text = `📚 ${book.title} - ${book.author}\n`;
+  text += `📝 Mes annotations\n`;
+  text += `${'='.repeat(50)}\n\n`;
+  
+  // Highlights
+  Object.entries(annotations).forEach(([chKey, chData]) => {
+    if (chKey === 'bookmarks' || typeof chData !== 'object') return;
+    
+    const chNum = parseInt(chKey.replace('ch', ''));
+    const chTitle = chapters[chNum]?.title || `Chapitre ${chNum + 1}`;
+    
+    text += `\n📖 ${chTitle}\n${'-'.repeat(40)}\n`;
+    
+    Object.values(chData).forEach(ann => {
+      text += `\n✨ "${ann.text}"\n`;
+      if (ann.note) text += `   📝 ${ann.note}\n`;
+    });
+  });
+  
+  // Bookmarks
+  if (annotations.bookmarks && annotations.bookmarks.length > 0) {
+    text += `\n\n🔖 Marque-pages\n${'-'.repeat(40)}\n`;
+    annotations.bookmarks.forEach(bm => {
+      text += `\n• ${bm.chapterTitle}\n`;
+      if (bm.note) text += `  ${bm.note}\n`;
+    });
+  }
+  
+  // Download
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${book.title.replace(/[^a-z0-9]/gi, '_')}_annotations.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  showToast('📥 Annotations exportées !');
+}
+
+function clearAllAnnotations() {
+  if (!confirm('Supprimer TOUTES les annotations de ce livre ? Cette action est irréversible.')) return;
+  
+  annotations = {};
+  saveAnnotations();
+  toggleAnnotationsPanel();
+  renderChapter();
+  
+  showToast('🗑️ Toutes les annotations supprimées');
+}
+
+// Toast notification
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.className = 'reader-toast';
+  toast.textContent = message;
+  toast.style.cssText = `
+    position:fixed;
+    bottom:80px;
+    left:50%;
+    transform:translateX(-50%);
+    background:var(--bg2);
+    color:var(--text);
+    padding:12px 24px;
+    border-radius:50px;
+    box-shadow:0 8px 24px rgba(0,0,0,.5);
+    z-index:10000;
+    font-size:.9rem;
+    font-weight:600;
+    animation:slideUp .3s ease;
+  `;
+  
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.animation = 'slideDown .3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
+}
+
+// Add CSS animations
+const annotationStyles = document.createElement('style');
+annotationStyles.textContent = `
+@keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(20px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+@keyframes slideDown { from { opacity:1; transform:translateX(-50%) translateY(0); } to { opacity:0; transform:translateX(-50%) translateY(20px); } }
+@keyframes pulse { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.05); background:rgba(167,139,250,.6); } }
+`;
+document.head.appendChild(annotationStyles);
+
+// Initialize annotations when chapter loads
+const originalRenderChapter = renderChapter;
+renderChapter = function() {
+  originalRenderChapter();
+  loadAnnotations();
+};
