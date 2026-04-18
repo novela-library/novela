@@ -1,17 +1,33 @@
-const CACHE = 'novela-v2';
-const STATIC = ['/', '/index.html', '/app.js', '/style.css', '/logo.png',
-  '/reader.html', '/reader.css', '/reader.js'];
+const CACHE = 'novela-v1.0.3';
+const STATIC = ['/', '/index.html', '/app.js?v=1.0.3', '/style.css?v=1.0.3', '/logo.png',
+  '/reader.html', '/reader.css', '/reader.js?v=1.0.3', '/book_texts.js?v=1.0.3'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(STATIC)).catch(() => {}));
-  self.skipWaiting();
+  console.log('[SW] Installing version 1.0.3');
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(STATIC)).catch(err => console.log('[SW] Cache error:', err))
+  );
+  self.skipWaiting(); // Force immediate activation
 });
 
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys =>
-    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-  ));
-  self.clients.claim();
+  console.log('[SW] Activating version 1.0.3');
+  e.waitUntil(
+    caches.keys().then(keys => {
+      // Delete all old caches
+      return Promise.all(
+        keys.filter(k => k !== CACHE).map(k => {
+          console.log('[SW] Deleting old cache:', k);
+          return caches.delete(k);
+        })
+      );
+    })
+  );
+  self.clients.claim(); // Take control immediately
+  // Force reload all clients
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => client.postMessage({ type: 'CACHE_UPDATED' }));
+  });
 });
 
 self.addEventListener('fetch', e => {
@@ -22,15 +38,16 @@ self.addEventListener('fetch', e => {
   if (url.pathname.startsWith('/api/')) return;
 
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(res => {
-        if (res.ok && (url.pathname.endsWith('.js') || url.pathname.endsWith('.css') || url.pathname.endsWith('.html'))) {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
-        }
-        return res;
-      }).catch(() => cached);
+    // Network first for HTML/JS/CSS to always get latest
+    fetch(e.request).then(res => {
+      if (res.ok && (url.pathname.endsWith('.js') || url.pathname.endsWith('.css') || url.pathname.endsWith('.html'))) {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+      }
+      return res;
+    }).catch(() => {
+      // Fallback to cache if offline
+      return caches.match(e.request);
     })
   );
 });

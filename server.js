@@ -386,7 +386,18 @@ function sendJSON(res, status, data) {
 function serveFile(res, filePath, contentType) {
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404); res.end('Not found'); return; }
-    res.writeHead(200, { 'Content-Type': contentType });
+    // Add cache control headers to force reload on new versions
+    const headers = { 'Content-Type': contentType };
+    // For HTML, CSS, JS files - no cache
+    if (contentType.includes('html') || contentType.includes('javascript') || contentType.includes('css')) {
+      headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+      headers['Pragma'] = 'no-cache';
+      headers['Expires'] = '0';
+    } else {
+      // For images and other assets - cache for 1 hour
+      headers['Cache-Control'] = 'public, max-age=3600';
+    }
+    res.writeHead(200, headers);
     res.end(data);
   });
 }

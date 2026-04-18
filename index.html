@@ -10,12 +10,16 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <link rel="apple-touch-icon" href="logo.png"/>
+  <!-- Cache control -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <!-- Preconnect to external resources for faster loading -->
   <link rel="preconnect" href="https://gutendex.com" crossorigin>
   <link rel="preconnect" href="https://www.gutenberg.org" crossorigin>
   <link rel="dns-prefetch" href="https://gutendex.com">
   <link rel="dns-prefetch" href="https://www.gutenberg.org">
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=1.0.3" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
@@ -804,11 +808,33 @@
 
 </div>
 
-<script src="app.js"></script>
+<script src="app.js?v=1.0.3"></script>
 <script>
-  // Register service worker for PWA
+  // Register service worker for PWA with auto-reload on update
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      // Check for updates every 30 seconds
+      setInterval(() => reg.update(), 30000);
+      
+      // Listen for updates
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
+            console.log('New version available, reloading...');
+            window.location.reload();
+          }
+        });
+      });
+    }).catch(() => {});
+    
+    // Listen for cache update messages from service worker
+    navigator.serviceWorker.addEventListener('message', event => {
+      if (event.data.type === 'CACHE_UPDATED') {
+        console.log('Cache updated, reloading...');
+        window.location.reload();
+      }
+    });
   }
 </script>
 </body>

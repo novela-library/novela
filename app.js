@@ -1,3 +1,21 @@
+// ===== VERSION CHECK & AUTO REFRESH =====
+const APP_VERSION = '1.0.3';
+const storedVersion = localStorage.getItem('novela_version');
+if (storedVersion && storedVersion !== APP_VERSION) {
+  console.log('New version detected, clearing cache...');
+  // Clear all caches except user data
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith('gutenberg_') || key.startsWith('novela_cache_')) {
+      localStorage.removeItem(key);
+    }
+  });
+  localStorage.setItem('novela_version', APP_VERSION);
+  // Force reload from server
+  window.location.reload(true);
+} else if (!storedVersion) {
+  localStorage.setItem('novela_version', APP_VERSION);
+}
+
 // ===== I18N =====
 let currentLang = localStorage.getItem('novela_lang') || 'en';
 
