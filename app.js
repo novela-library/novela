@@ -53,6 +53,8 @@ const TRANSLATIONS = {
     no_bookmarks: 'Aucun marque-page', add_note: 'Ajouter une note',
     edit_note: 'Modifier', delete: 'Supprimer', bookmark_added: 'Marque-page ajouté !',
     text_highlighted: 'Texte surligné !', note_added: 'Note ajoutée !',
+    // Scoreboard
+    nav_scoreboard: 'Classement', sb_quiz: 'Quiz', sb_books: 'Livres lus',
   },
   en: {
     nav_home: 'Home', nav_library: 'Library', nav_quiz: 'Quiz',
@@ -105,6 +107,8 @@ const TRANSLATIONS = {
     no_bookmarks: 'No bookmarks', add_note: 'Add note',
     edit_note: 'Edit', delete: 'Delete', bookmark_added: 'Bookmark added!',
     text_highlighted: 'Text highlighted!', note_added: 'Note added!',
+    // Scoreboard
+    nav_scoreboard: 'Leaderboard', sb_quiz: 'Quiz', sb_books: 'Books read',
   },
   es: {
     nav_home: 'Inicio', nav_library: 'Biblioteca', nav_quiz: 'Quiz',
@@ -157,6 +161,8 @@ const TRANSLATIONS = {
     no_bookmarks: 'Sin marcadores', add_note: 'Añadir nota',
     edit_note: 'Editar', delete: 'Eliminar', bookmark_added: '¡Marcador añadido!',
     text_highlighted: '¡Texto resaltado!', note_added: '¡Nota añadida!',
+    // Scoreboard
+    nav_scoreboard: 'Clasificación', sb_quiz: 'Quiz', sb_books: 'Libros leídos',
   },
   ar: {
     nav_home: 'الرئيسية', nav_library: 'المكتبة', nav_quiz: 'اختبار',
@@ -209,6 +215,8 @@ const TRANSLATIONS = {
     no_bookmarks: 'لا توجد إشارات مرجعية', add_note: 'إضافة ملاحظة',
     edit_note: 'تعديل', delete: 'حذف', bookmark_added: 'تمت إضافة الإشارة المرجعية!',
     text_highlighted: 'تم تظليل النص!', note_added: 'تمت إضافة الملاحظة!',
+    // Scoreboard
+    nav_scoreboard: 'التصنيف', sb_quiz: 'الاختبارات', sb_books: 'الكتب المقروءة',
   }
 };
 

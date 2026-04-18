@@ -221,7 +221,7 @@
         <i class="fas fa-history"></i><span data-i18n="nav_history">Historique</span>
       </button>
       <button class="sidebar-btn" id="sb-scoreboard" onclick="showPage('scoreboard')">
-        <i class="fas fa-trophy"></i><span>Classement</span>
+        <i class="fas fa-trophy"></i><span data-i18n="nav_scoreboard">Classement</span>
       </button>
       <button class="sidebar-btn" id="sb-rewards" onclick="showPage('rewards')">
         <i class="fas fa-medal"></i><span data-i18n="nav_rewards">Récompenses</span>
@@ -243,7 +243,7 @@
     <button class="nav-btn" onclick="showPage('quiz');closeMobileMenu()"><i class="fas fa-question-circle"></i> <span data-i18n="nav_quiz">Quiz</span></button>
     <button class="nav-btn" onclick="showPage('ai');closeMobileMenu()"><i class="fas fa-robot"></i> <span data-i18n="nav_ai">IA</span></button>
     <button class="nav-btn" onclick="showPage('history');closeMobileMenu()"><i class="fas fa-history"></i> <span data-i18n="nav_history">Historique</span></button>
-    <button class="nav-btn" onclick="showPage('scoreboard');closeMobileMenu()"><i class="fas fa-trophy"></i> <span>Classement</span></button>
+    <button class="nav-btn" onclick="showPage('scoreboard');closeMobileMenu()"><i class="fas fa-trophy"></i> <span data-i18n="nav_scoreboard">Classement</span></button>
     <button class="nav-btn" onclick="showPage('rewards');closeMobileMenu()"><i class="fas fa-medal"></i> <span data-i18n="nav_rewards">Récompenses</span></button>
     <button class="nav-btn" onclick="showPage('stats');closeMobileMenu()"><i class="fas fa-chart-line"></i> <span data-i18n="nav_stats">Statistiques</span></button>
     <button class="nav-btn" onclick="showPage('community');closeMobileMenu()"><i class="fas fa-users"></i> <span data-i18n="nav_community">Communauté</span></button>
@@ -430,11 +430,11 @@
   <!-- SCOREBOARD PAGE -->
   <div id="page-scoreboard" class="page">
     <div class="page-header">
-      <h2><i class="fas fa-trophy"></i> Classement</h2>
+      <h2><i class="fas fa-trophy"></i> <span data-i18n="nav_scoreboard">Classement</span></h2>
     </div>
     <div class="scoreboard-tabs">
-      <button class="sb-tab active" onclick="switchSbTab('quiz')"><i class="fas fa-question-circle"></i> Quiz</button>
-      <button class="sb-tab" onclick="switchSbTab('books')"><i class="fas fa-book-open"></i> Livres lus</button>
+      <button class="sb-tab active" onclick="switchSbTab('quiz')"><i class="fas fa-question-circle"></i> <span data-i18n="sb_quiz">Quiz</span></button>
+      <button class="sb-tab" onclick="switchSbTab('books')"><i class="fas fa-book-open"></i> <span data-i18n="sb_books">Livres lus</span></button>
     </div>
     <div id="sb-quiz-panel" class="sb-panel active">
       <div class="sb-my-score" id="sb-my-quiz"></div>
