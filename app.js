@@ -1,5 +1,5 @@
 // ===== I18N =====
-let currentLang = localStorage.getItem('novela_lang') || 'fr';
+let currentLang = localStorage.getItem('novela_lang') || 'en';
 
 const TRANSLATIONS = {
   fr: {
