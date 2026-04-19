@@ -10,72 +10,39 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#07080f;--bg2:#0d0e1c;--bg3:#13152a;--text:#eeeeff;--text2:#8b8fa8;--accent:#7c6af7;--accent3:#a78bfa;--pink:#f472b6}
 body{font-family:Inter,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;overflow-x:hidden}
-
-/* BG orbs */
 .orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0}
 .orb1{width:500px;height:500px;background:rgba(124,106,247,.12);top:-100px;left:-100px}
 .orb2{width:400px;height:400px;background:rgba(244,114,182,.08);bottom:-80px;right:-80px}
-
 .container{position:relative;z-index:1;max-width:560px;width:100%;text-align:center}
-
-/* Logo */
 .logo{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:40px}
 .logo img{width:52px;height:52px;object-fit:contain;filter:drop-shadow(0 0 20px rgba(167,139,250,.5))}
 .logo-text{font-size:2rem;font-weight:900;background:linear-gradient(135deg,var(--accent3),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-
-/* Hero */
 .hero-title{font-size:2.2rem;font-weight:900;line-height:1.2;margin-bottom:14px}
 .hero-title span{background:linear-gradient(135deg,var(--accent3),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .hero-sub{font-size:1rem;color:var(--text2);margin-bottom:48px;line-height:1.6}
-
-/* Download cards */
 .download-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px}
 @media(max-width:480px){.download-cards{grid-template-columns:1fr}}
-
 .dl-card{background:var(--bg2);border:1px solid rgba(124,106,247,.2);border-radius:20px;padding:28px 20px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
-.dl-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,106,247,.08),transparent);opacity:0;transition:opacity .3s}
 .dl-card:hover{transform:translateY(-4px);border-color:rgba(124,106,247,.5);box-shadow:0 16px 40px rgba(124,106,247,.2)}
-.dl-card:hover::before{opacity:1}
 .dl-card.active{border-color:var(--accent3);box-shadow:0 0 0 2px rgba(167,139,250,.3)}
-
 .dl-icon{font-size:2.8rem;margin-bottom:14px;display:block}
 .dl-platform{font-size:1rem;font-weight:700;margin-bottom:6px}
 .dl-desc{font-size:.82rem;color:var(--text2);margin-bottom:18px;line-height:1.5}
-
 .dl-btn{width:100%;padding:13px;border-radius:12px;border:none;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
 .dl-btn-primary{background:linear-gradient(135deg,var(--accent),#5b4de0);color:#fff;box-shadow:0 4px 16px rgba(124,106,247,.4)}
 .dl-btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(124,106,247,.5)}
-.dl-btn-secondary{background:linear-gradient(135deg,#1a1d35,#13152a);color:var(--accent3);border:1px solid rgba(124,106,247,.3)}
+.dl-btn-secondary{background:var(--bg3);color:var(--accent3);border:1px solid rgba(124,106,247,.3)}
 .dl-btn-secondary:hover{border-color:var(--accent3);background:rgba(124,106,247,.1)}
-
-.dl-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-
-/* Status */
-.install-status{margin-top:8px;font-size:.78rem;min-height:20px;transition:all .3s}
-.install-status.success{color:#34d399}
-.install-status.error{color:#f87171}
-.install-status.info{color:var(--accent3)}
-
-/* Features */
 .features{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:40px}
 .feat{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--text2)}
 .feat i{color:var(--accent3)}
-
-/* Back link */
 .back-link{color:var(--text2);font-size:.85rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:color .2s;margin-top:8px}
 .back-link:hover{color:var(--accent3)}
-
-/* Toast */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid rgba(124,106,247,.3);color:var(--text);padding:12px 24px;border-radius:50px;font-size:.88rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid rgba(124,106,247,.3);color:var(--text);padding:12px 24px;border-radius:50px;font-size:.88rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9999;white-space:nowrap}
 .toast.show{opacity:1}
-
-/* Spinner */
-@keyframes spin{to{transform:rotate(360deg)}}
-.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
 </style>
 </head>
 <body>
-
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
 
@@ -97,7 +64,6 @@ body{font-family:Inter,-apple-system,sans-serif;background:var(--bg);color:var(-
   </div>
 
   <div class="download-cards">
-    <!-- MOBILE -->
     <div class="dl-card" id="card-mobile">
       <span class="dl-icon">📱</span>
       <div class="dl-platform">Android & iOS</div>
@@ -105,10 +71,7 @@ body{font-family:Inter,-apple-system,sans-serif;background:var(--bg);color:var(-
       <button class="dl-btn dl-btn-primary" id="btn-mobile" onclick="installMobile()">
         <i class="fas fa-download"></i> Installer sur mobile
       </button>
-      <div class="install-status" id="status-mobile"></div>
     </div>
-
-    <!-- DESKTOP -->
     <div class="dl-card" id="card-desktop">
       <span class="dl-icon">💻</span>
       <div class="dl-platform">Windows & Mac</div>
@@ -116,7 +79,6 @@ body{font-family:Inter,-apple-system,sans-serif;background:var(--bg);color:var(-
       <button class="dl-btn dl-btn-secondary" id="btn-desktop" onclick="installDesktop()">
         <i class="fas fa-desktop"></i> Installer sur PC
       </button>
-      <div class="install-status" id="status-desktop"></div>
     </div>
   </div>
 
@@ -125,160 +87,132 @@ body{font-family:Inter,-apple-system,sans-serif;background:var(--bg);color:var(-
 
 <div class="toast" id="toast"></div>
 
+<!-- MODAL -->
+<div id="install-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#0d0e1c;border:1px solid rgba(124,106,247,.35);border-radius:24px;padding:32px;max-width:420px;width:100%;position:relative">
+    <button onclick="closeModal()" style="position:absolute;top:14px;right:14px;background:#13152a;border:none;color:#8b8fa8;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
 <script>
 let deferredPrompt = null;
-let isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-let isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-let isAndroid = /Android/i.test(navigator.userAgent);
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-// Capture the install prompt
+// Capture PWA install prompt
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  // Update buttons to show ready state
-  updateButtons();
 });
 
 window.addEventListener('appinstalled', () => {
   showToast('✅ Novela installé avec succès !');
-  deferredPrompt = null;
 });
 
-function updateButtons() {
-  if (isMobile) {
-    document.getElementById('card-mobile').classList.add('active');
-    document.getElementById('btn-mobile').innerHTML = '<i class="fas fa-download"></i> Installer maintenant';
-  } else {
-    document.getElementById('card-desktop').classList.add('active');
-    document.getElementById('btn-desktop').innerHTML = '<i class="fas fa-desktop"></i> Installer maintenant';
-    document.getElementById('btn-desktop').className = 'dl-btn dl-btn-primary';
-  }
+// Highlight right card
+if (isMobile) {
+  document.getElementById('card-mobile').classList.add('active');
+} else {
+  document.getElementById('card-desktop').classList.add('active');
+  document.getElementById('btn-desktop').className = 'dl-btn dl-btn-primary';
 }
 
-async function installMobile() {
-  const btn = document.getElementById('btn-mobile');
-  const status = document.getElementById('status-mobile');
+// Already installed
+if (window.matchMedia('(display-mode: standalone)').matches) {
+  document.getElementById('btn-mobile').innerHTML = '<i class="fas fa-check"></i> Déjà installé';
+  document.getElementById('btn-desktop').innerHTML = '<i class="fas fa-check"></i> Déjà installé';
+}
 
-  if (isIOS) {
-    showModal('ios');
+const guides = {
+  android: {
+    icon: '🤖', title: 'Installer sur Android',
+    steps: [
+      { icon: '🌐', text: 'Ouvre cette page dans <strong>Chrome</strong>' },
+      { icon: '⋮', text: 'Appuie sur les <strong>3 points</strong> en haut à droite' },
+      { icon: '📲', text: 'Appuie sur <strong>"Ajouter à l\'écran d\'accueil"</strong>' },
+      { icon: '✅', text: 'Appuie sur <strong>"Ajouter"</strong> pour confirmer' }
+    ]
+  },
+  ios: {
+    icon: '🍎', title: 'Installer sur iPhone / iPad',
+    steps: [
+      { icon: '🧭', text: 'Ouvre cette page dans <strong>Safari</strong>' },
+      { icon: '⬆️', text: 'Appuie sur le bouton <strong>Partager</strong> (carré avec flèche)' },
+      { icon: '📲', text: 'Fais défiler et appuie sur <strong>"Sur l\'écran d\'accueil"</strong>' },
+      { icon: '✅', text: 'Appuie sur <strong>"Ajouter"</strong> en haut à droite' }
+    ]
+  },
+  desktop: {
+    icon: '💻', title: 'Installer sur Windows / Mac',
+    steps: [
+      { icon: '🌐', text: 'Ouvre cette page dans <strong>Chrome</strong> ou <strong>Edge</strong>' },
+      { icon: '📥', text: 'Clique sur l\'icône <strong>📥</strong> dans la barre d\'adresse (à droite)' },
+      { icon: '🖱️', text: 'Clique sur <strong>"Installer"</strong> dans la popup' },
+      { icon: '✅', text: 'L\'app apparaît sur ton <strong>bureau</strong> !' }
+    ]
+  }
+};
+
+async function installMobile() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    if (outcome === 'accepted') {
+      document.getElementById('btn-mobile').innerHTML = '<i class="fas fa-check"></i> Installé !';
+      showToast('✅ Novela installé !');
+    }
     return;
   }
-
-  if (deferredPrompt) {
-    btn.innerHTML = '<span class="spinner"></span> Installation...';
-    btn.disabled = true;
-    try {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        status.className = 'install-status success';
-        status.textContent = '✅ Installation réussie !';
-        btn.innerHTML = '<i class="fas fa-check"></i> Installé !';
-      } else {
-        status.className = 'install-status error';
-        status.textContent = 'Installation annulée.';
-        btn.innerHTML = '<i class="fas fa-download"></i> Installer sur mobile';
-        btn.disabled = false;
-      }
-      deferredPrompt = null;
-    } catch(e) {
-      btn.innerHTML = '<i class="fas fa-download"></i> Installer sur mobile';
-      btn.disabled = false;
-    }
-  } else {
-    showModal('android');
-  }
+  openModal(isIOS ? 'ios' : 'android');
 }
 
 async function installDesktop() {
-  const btn = document.getElementById('btn-desktop');
-  const status = document.getElementById('status-desktop');
-
   if (deferredPrompt) {
-    btn.innerHTML = '<span class="spinner"></span> Installation...';
-    btn.disabled = true;
-    try {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        status.className = 'install-status success';
-        status.textContent = '✅ Installation réussie !';
-        btn.innerHTML = '<i class="fas fa-check"></i> Installé !';
-      } else {
-        status.className = 'install-status error';
-        status.textContent = 'Installation annulée.';
-        btn.innerHTML = '<i class="fas fa-desktop"></i> Installer sur PC';
-        btn.disabled = false;
-      }
-      deferredPrompt = null;
-    } catch(e) {
-      btn.innerHTML = '<i class="fas fa-desktop"></i> Installer sur PC';
-      btn.disabled = false;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    if (outcome === 'accepted') {
+      document.getElementById('btn-desktop').innerHTML = '<i class="fas fa-check"></i> Installé !';
+      showToast('✅ Novela installé !');
     }
-  } else {
-    showModal('desktop');
+    return;
   }
+  openModal('desktop');
 }
 
-function showModal(type) {
-  document.getElementById('install-modal')?.remove();
-  const modal = document.createElement('div');
-  modal.id = 'install-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px';
-
-  const steps = {
-    android: {
-      icon: '🤖',
-      title: 'Installer sur Android',
-      steps: [
-        '1. Ouvre cette page dans <strong>Chrome</strong>',
-        '2. Appuie sur le menu <strong>⋮</strong> (3 points en haut à droite)',
-        '3. Appuie sur <strong>"Ajouter à l\'écran d\'accueil"</strong>',
-        '4. Confirme en appuyant sur <strong>"Ajouter"</strong>'
-      ]
-    },
-    ios: {
-      icon: '🍎',
-      title: 'Installer sur iPhone/iPad',
-      steps: [
-        '1. Ouvre cette page dans <strong>Safari</strong>',
-        '2. Appuie sur le bouton <strong>Partager</strong> (carré avec flèche)',
-        '3. Fais défiler et appuie sur <strong>"Sur l\'écran d\'accueil"</strong>',
-        '4. Appuie sur <strong>"Ajouter"</strong>'
-      ]
-    },
-    desktop: {
-      icon: '💻',
-      title: 'Installer sur PC',
-      steps: [
-        '1. Ouvre cette page dans <strong>Chrome</strong> ou <strong>Edge</strong>',
-        '2. Clique sur l\'icône <strong>📥</strong> dans la barre d\'adresse',
-        '3. Clique sur <strong>"Installer"</strong>',
-        '4. L\'app apparaît sur ton bureau !'
-      ]
-    }
-  };
-
-  const s = steps[type];
-  modal.innerHTML = `
-    <div style="background:#0d0e1c;border:1px solid rgba(124,106,247,.3);border-radius:20px;padding:32px;max-width:400px;width:100%">
-      <div style="text-align:center;margin-bottom:20px">
-        <div style="font-size:3rem;margin-bottom:8px">${s.icon}</div>
-        <h2 style="font-size:1.2rem;font-weight:800;color:#eeeeff">${s.title}</h2>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px">
-        ${s.steps.map(step => `
-          <div style="background:#13152a;border-radius:10px;padding:12px 14px;font-size:.88rem;color:#8b8fa8;line-height:1.5">${step}</div>
-        `).join('')}
-      </div>
-      <button onclick="document.getElementById('install-modal').remove()" style="width:100%;padding:13px;background:linear-gradient(135deg,#7c6af7,#5b4de0);color:#fff;border:none;border-radius:12px;font-size:.95rem;font-weight:700;cursor:pointer">
-        Compris !
-      </button>
-    </div>`;
-
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-  document.body.appendChild(modal);
+function openModal(type) {
+  const g = guides[type];
+  document.getElementById('modal-body').innerHTML = `
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:3.5rem;margin-bottom:10px">${g.icon}</div>
+      <h2 style="font-size:1.2rem;font-weight:800;color:#eeeeff;margin-bottom:4px">${g.title}</h2>
+      <p style="font-size:.82rem;color:#8b8fa8">Suivez ces étapes simples</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+      ${g.steps.map(s => `
+        <div style="display:flex;align-items:center;gap:14px;background:#13152a;border-radius:12px;padding:14px">
+          <div style="width:36px;height:36px;background:linear-gradient(135deg,#7c6af7,#5b4de0);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">${s.icon}</div>
+          <div style="font-size:.88rem;color:#8b8fa8;line-height:1.5">${s.text}</div>
+        </div>
+      `).join('')}
+    </div>
+    <button onclick="closeModal()" style="width:100%;padding:14px;background:linear-gradient(135deg,#7c6af7,#5b4de0);color:#fff;border:none;border-radius:12px;font-size:.95rem;font-weight:700;cursor:pointer">
+      J'ai compris, allons-y !
+    </button>
+  `;
+  const m = document.getElementById('install-modal');
+  m.style.display = 'flex';
 }
+
+function closeModal() {
+  document.getElementById('install-modal').style.display = 'none';
+}
+
+document.getElementById('install-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -286,22 +220,6 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3500);
 }
-
-// Auto-detect and highlight the right card
-document.addEventListener('DOMContentLoaded', () => {
-  if (isMobile) {
-    document.getElementById('card-mobile').style.order = '-1';
-  }
-  // Check if already installed
-  if (window.matchMedia('(display-mode: standalone)').matches) {
-    document.getElementById('status-mobile').className = 'install-status success';
-    document.getElementById('status-mobile').textContent = '✅ Déjà installé !';
-    document.getElementById('status-desktop').className = 'install-status success';
-    document.getElementById('status-desktop').textContent = '✅ Déjà installé !';
-    document.getElementById('btn-mobile').innerHTML = '<i class="fas fa-check"></i> Déjà installé';
-    document.getElementById('btn-desktop').innerHTML = '<i class="fas fa-check"></i> Déjà installé';
-  }
-});
 </script>
 </body>
 </html>
