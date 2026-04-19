@@ -14,20 +14,12 @@ self.addEventListener('activate', e => {
   console.log('[SW] Activating version 1.0.8');
   e.waitUntil(
     caches.keys().then(keys => {
-      // Delete all old caches
       return Promise.all(
-        keys.filter(k => k !== CACHE).map(k => {
-          console.log('[SW] Deleting old cache:', k);
-          return caches.delete(k);
-        })
+        keys.filter(k => k !== CACHE).map(k => caches.delete(k))
       );
     })
   );
-  self.clients.claim(); // Take control immediately
-  // Force reload all clients
-  self.clients.matchAll().then(clients => {
-    clients.forEach(client => client.postMessage({ type: 'CACHE_UPDATED' }));
-  });
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', e => {
