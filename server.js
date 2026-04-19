@@ -471,7 +471,9 @@ const server = http.createServer(async (req, res) => {
     '/book_texts.js': 'book_texts.js',
     '/books-content.js': 'books-content.js',
     '/manifest.json': 'manifest.json',
-    '/sw.js': 'sw.js'
+    '/sw.js': 'sw.js',
+    '/download.html': 'download.html',
+    '/download': 'download.html'
   };
 
   // Protect admin.html — redirect to admin-login if no session
