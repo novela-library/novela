@@ -34,6 +34,7 @@
       <span>Novela</span>
     </div>
     <div class="landing-nav-actions">
+      <a href="/download" class="landing-btn-ghost" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><i class="fas fa-download"></i> Télécharger</a>
       <button class="landing-btn-ghost" onclick="showAuth('login')">Connexion</button>
       <button class="landing-btn-cta" onclick="showAuth('register')">Commencer gratuitement →</button>
     </div>
@@ -63,8 +64,8 @@
         <button class="landing-btn-ghost landing-btn-lg" onclick="showAuth('login')">
           <i class="fas fa-sign-in-alt"></i> Se connecter
         </button>
-        <a href="/download" class="landing-btn-ghost landing-btn-lg" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px">
-          <i class="fas fa-download"></i> Télécharger l'app
+        <a href="/download" class="landing-btn-ghost landing-btn-lg" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;border-color:rgba(167,139,250,.4)">
+          <i class="fas fa-download" style="color:var(--accent3)"></i> Télécharger l'app
         </a>
       </div>
       <!-- Floating book covers -->
@@ -269,6 +270,9 @@
       <button class="sidebar-btn" id="sb-community" onclick="showPage('community')">
         <i class="fas fa-users"></i><span data-i18n="nav_community">Communauté</span>
       </button>
+      <a href="/download" class="sidebar-btn" style="text-decoration:none;color:inherit;margin-top:8px;border-top:1px solid rgba(255,255,255,.06);padding-top:12px">
+        <i class="fas fa-download"></i><span>Télécharger l'app</span>
+      </a>
     </nav>
   </aside>
 
@@ -284,6 +288,7 @@
     <button class="nav-btn" onclick="showPage('rewards');closeMobileMenu()"><i class="fas fa-medal"></i> <span data-i18n="nav_rewards">Récompenses</span></button>
     <button class="nav-btn" onclick="showPage('stats');closeMobileMenu()"><i class="fas fa-chart-line"></i> <span data-i18n="nav_stats">Statistiques</span></button>
     <button class="nav-btn" onclick="showPage('community');closeMobileMenu()"><i class="fas fa-users"></i> <span data-i18n="nav_community">Communauté</span></button>
+    <a href="/download" class="nav-btn" style="text-decoration:none;color:inherit;border-top:1px solid rgba(255,255,255,.06);margin-top:8px;padding-top:12px"><i class="fas fa-download"></i> Télécharger l'app</a>
   </div>
 
   <!-- MAIN CONTENT -->
