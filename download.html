@@ -160,15 +160,11 @@ async function installMobile() {
   const status = document.getElementById('status-mobile');
 
   if (isIOS) {
-    // iOS doesn't support beforeinstallprompt — show Safari instructions
-    status.className = 'install-status info';
-    status.innerHTML = '📲 Safari : appuyez sur <strong>Partager</strong> → <strong>Sur l\'écran d\'accueil</strong>';
-    showToast('📲 Suivez les instructions ci-dessous');
+    showModal('ios');
     return;
   }
 
   if (deferredPrompt) {
-    // Trigger native install
     btn.innerHTML = '<span class="spinner"></span> Installation...';
     btn.disabled = true;
     try {
@@ -190,14 +186,7 @@ async function installMobile() {
       btn.disabled = false;
     }
   } else {
-    // Fallback: open site in browser so prompt can appear
-    status.className = 'install-status info';
-    if (isAndroid) {
-      status.innerHTML = '🌐 Ouvrez dans <strong>Chrome</strong> → menu ⋮ → <strong>Ajouter à l\'écran d\'accueil</strong>';
-    } else {
-      status.innerHTML = '📲 Safari : <strong>Partager</strong> → <strong>Sur l\'écran d\'accueil</strong>';
-    }
-    showToast('💡 Ouvrez cette page dans Chrome ou Safari');
+    showModal('android');
   }
 }
 
@@ -227,11 +216,68 @@ async function installDesktop() {
       btn.disabled = false;
     }
   } else {
-    // Already installed or not supported
-    status.className = 'install-status info';
-    status.innerHTML = '🌐 Ouvrez dans <strong>Chrome</strong> ou <strong>Edge</strong> → icône 📥 dans la barre d\'adresse';
-    showToast('💡 Utilisez Chrome ou Edge pour installer');
+    showModal('desktop');
   }
+}
+
+function showModal(type) {
+  document.getElementById('install-modal')?.remove();
+  const modal = document.createElement('div');
+  modal.id = 'install-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px';
+
+  const steps = {
+    android: {
+      icon: '🤖',
+      title: 'Installer sur Android',
+      steps: [
+        '1. Ouvre cette page dans <strong>Chrome</strong>',
+        '2. Appuie sur le menu <strong>⋮</strong> (3 points en haut à droite)',
+        '3. Appuie sur <strong>"Ajouter à l\'écran d\'accueil"</strong>',
+        '4. Confirme en appuyant sur <strong>"Ajouter"</strong>'
+      ]
+    },
+    ios: {
+      icon: '🍎',
+      title: 'Installer sur iPhone/iPad',
+      steps: [
+        '1. Ouvre cette page dans <strong>Safari</strong>',
+        '2. Appuie sur le bouton <strong>Partager</strong> (carré avec flèche)',
+        '3. Fais défiler et appuie sur <strong>"Sur l\'écran d\'accueil"</strong>',
+        '4. Appuie sur <strong>"Ajouter"</strong>'
+      ]
+    },
+    desktop: {
+      icon: '💻',
+      title: 'Installer sur PC',
+      steps: [
+        '1. Ouvre cette page dans <strong>Chrome</strong> ou <strong>Edge</strong>',
+        '2. Clique sur l\'icône <strong>📥</strong> dans la barre d\'adresse',
+        '3. Clique sur <strong>"Installer"</strong>',
+        '4. L\'app apparaît sur ton bureau !'
+      ]
+    }
+  };
+
+  const s = steps[type];
+  modal.innerHTML = `
+    <div style="background:#0d0e1c;border:1px solid rgba(124,106,247,.3);border-radius:20px;padding:32px;max-width:400px;width:100%">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:3rem;margin-bottom:8px">${s.icon}</div>
+        <h2 style="font-size:1.2rem;font-weight:800;color:#eeeeff">${s.title}</h2>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px">
+        ${s.steps.map(step => `
+          <div style="background:#13152a;border-radius:10px;padding:12px 14px;font-size:.88rem;color:#8b8fa8;line-height:1.5">${step}</div>
+        `).join('')}
+      </div>
+      <button onclick="document.getElementById('install-modal').remove()" style="width:100%;padding:13px;background:linear-gradient(135deg,#7c6af7,#5b4de0);color:#fff;border:none;border-radius:12px;font-size:.95rem;font-weight:700;cursor:pointer">
+        Compris !
+      </button>
+    </div>`;
+
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
 }
 
 function showToast(msg) {
