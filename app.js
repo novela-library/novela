@@ -1771,8 +1771,31 @@ function renderBooks(container, books) {
 function filterBooks() {
   const q = document.getElementById('search-input').value.toLowerCase();
   let filtered = BOOKS;
+
+  // Filter by active language
+  if (gutenbergLang === 'en') {
+    filtered = filtered.filter(b => b.lang === 'en' || (b.genre || '').includes('English'));
+  } else if (gutenbergLang === 'ar') {
+    filtered = filtered.filter(b => b.lang === 'ar' || (b.genre || '').includes('عربية'));
+  } else if (gutenbergLang === 'es') {
+    filtered = filtered.filter(b => b.lang === 'es' || (b.genre || '').includes('Español'));
+  } else if (gutenbergLang === 'fr') {
+    filtered = filtered.filter(b => {
+      const lang = b.lang || '';
+      const genre = b.genre || '';
+      return lang === 'fr' || genre.includes('Français') || genre.includes('Roman') ||
+             genre.includes('Policier') || genre.includes('Science-fiction') ||
+             genre.includes('Philosophie') || genre.includes('Poésie') ||
+             (!lang && !genre.includes('English') && !genre.includes('عربية') && !genre.includes('Español'));
+    });
+  }
+
   if (activeGenre !== 'Tous') filtered = filtered.filter(b => b.genre === activeGenre);
-  if (q) filtered = filtered.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q) || b.genre.toLowerCase().includes(q));
+  if (q) filtered = filtered.filter(b =>
+    b.title.toLowerCase().includes(q) ||
+    b.author.toLowerCase().includes(q) ||
+    (b.genre || '').toLowerCase().includes(q)
+  );
   renderBooks('library-books', filtered);
 }
 
@@ -1977,6 +2000,8 @@ function setLangFilter(code, btn) {
     return;
   }
 
+  // For other languages — filter local books first, then fetch Gutenberg
+  filterBooks();
   fetchGutenbergPage(true);
 }
 
