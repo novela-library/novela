@@ -1771,40 +1771,8 @@ function renderBooks(container, books) {
 function filterBooks() {
   const q = document.getElementById('search-input').value.toLowerCase();
   let filtered = BOOKS;
-
-  // Filter by active language using both lang field AND genre
-  if (gutenbergLang && gutenbergLang !== 'fr') {
-    filtered = filtered.filter(b => {
-      const lang = b.lang || '';
-      const genre = b.genre || '';
-      if (gutenbergLang === 'en') {
-        return lang === 'en' || genre.includes('English') || genre.includes('Anglais');
-      }
-      if (gutenbergLang === 'ar') {
-        return lang === 'ar' || genre.includes('عربية') || genre.includes('Arabic');
-      }
-      if (gutenbergLang === 'es') {
-        return lang === 'es' || genre.includes('Español') || genre.includes('Spanish');
-      }
-      return true;
-    });
-  } else if (gutenbergLang === 'fr') {
-    filtered = filtered.filter(b => {
-      const lang = b.lang || '';
-      const genre = b.genre || '';
-      return lang === 'fr' || genre.includes('Français') || genre.includes('French') ||
-             genre.includes('Roman') || genre.includes('Policier') || genre.includes('Science-fiction') ||
-             genre.includes('Philosophie') || genre.includes('Poésie') ||
-             (!lang && !genre.includes('English') && !genre.includes('عربية') && !genre.includes('Español'));
-    });
-  }
-
   if (activeGenre !== 'Tous') filtered = filtered.filter(b => b.genre === activeGenre);
-  if (q) filtered = filtered.filter(b =>
-    b.title.toLowerCase().includes(q) ||
-    b.author.toLowerCase().includes(q) ||
-    (b.genre || '').toLowerCase().includes(q)
-  );
+  if (q) filtered = filtered.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q) || b.genre.toLowerCase().includes(q));
   renderBooks('library-books', filtered);
 }
 
@@ -2009,8 +1977,6 @@ function setLangFilter(code, btn) {
     return;
   }
 
-  // For other languages — filter local books first, then fetch Gutenberg
-  filterBooks();
   fetchGutenbergPage(true);
 }
 
@@ -2048,18 +2014,27 @@ async function fetchGutenbergPage(replace = false) {
   });
 
   if (replace) {
+    // Show loading bar
     if (loadingBar) loadingBar.style.display = 'block';
+    
+    // INSTANT LOAD: Show local books immediately for instant feedback
+    const localBooks = BOOKS.slice(0, 20);
+    renderBooks('library-books', localBooks);
+    
+    // Hide load more button initially
     if (loadMoreWrap) loadMoreWrap.style.display = 'none';
-
-    // Show local books immediately
-    const localBooks = gutenbergLang === 'en'
-      ? BOOKS.filter(b => b.lang === 'en' || (b.genre || '').includes('English'))
-      : gutenbergLang === 'ar'
-      ? BOOKS.filter(b => b.lang === 'ar' || (b.genre || '').includes('عربية'))
-      : gutenbergLang === 'es'
-      ? BOOKS.filter(b => b.lang === 'es' || (b.genre || '').includes('Español'))
-      : BOOKS.slice(0, 20);
-    renderBooks('library-books', localBooks.length ? localBooks : BOOKS.slice(0, 20));
+    
+    // Then fetch Gutenberg in background to replace with more books
+    setTimeout(() => {
+      el.innerHTML = Array(8).fill(0).map(() => `
+        <div class="book-card skeleton-card">
+          <div class="book-cover skeleton-cover"></div>
+          <div class="book-info">
+            <div class="skeleton-line" style="width:80%;height:12px;margin-bottom:8px"></div>
+            <div class="skeleton-line" style="width:55%;height:10px"></div>
+          </div>
+        </div>`).join('');
+    }, 100);
   }
 
   try {
@@ -2114,35 +2089,40 @@ async function fetchGutenbergPage(replace = false) {
       Object.keys(localStorage).filter(k => k.startsWith('gutenberg_')).forEach(k => localStorage.removeItem(k));
     }
     
-    renderGutenbergBooks(data.results, false); // always append to local books
+    renderGutenbergBooks(data.results, replace);
+    // Always show load more button if we have results (Gutenberg has many pages)
     if (loadMoreWrap) {
       const shouldShow = data.next || (data.results && data.results.length >= 32);
       loadMoreWrap.style.display = shouldShow ? 'block' : 'none';
+      console.log('Load more button:', shouldShow ? 'visible' : 'hidden', 'Element exists:', !!loadMoreWrap);
+    } else {
+      console.error('Load more wrap element not found!');
     }
-
-    // Prefetch next page in background so "load more" is instant
-    if (data.next) {
-      setTimeout(() => prefetchNextGutenbergPage(gutenbergPage + 1), 1000);
-    }
-
   } catch(e) {
     console.error('Gutenberg fetch error:', e);
     if (replace) {
       // Fallback to local books if Gutenberg fails
       renderBooks('library-books', BOOKS.slice(0, 20));
+      if (loadMoreWrap) {
+        loadMoreWrap.style.display = 'none';
+      } else {
+        console.error('Load more wrap element not found in error handler!');
+      }
     }
-    // Always show load more even on error — local books have more pages
-    if (loadMoreWrap) loadMoreWrap.style.display = 'block';
   }
   
+  // Hide loading bar
   if (loadingBar) loadingBar.style.display = 'none';
   gutenbergLoading = false;
   
-  // Always show load more button
+  // Final check: ensure load more button is visible if we're on page 1
   setTimeout(() => {
     const btn = document.getElementById('load-more-wrap');
-    if (btn) btn.style.display = 'block';
-  }, 300);
+    if (btn && gutenbergPage === 1) {
+      btn.style.display = 'block';
+      console.log('Force showing load more button on page 1');
+    }
+  }, 500);
 }
 
 function renderGutenbergBooks(books, replace) {
@@ -2207,28 +2187,6 @@ function openGutenbergBook(gutId, title, author, cover, desc) {
 async function loadMoreGutenberg() {
   gutenbergPage++;
   await fetchGutenbergPage(false);
-  // Always keep load more visible
-  const btn = document.getElementById('load-more-wrap');
-  if (btn) btn.style.display = 'block';
-}
-
-// Prefetch next page silently into cache
-async function prefetchNextGutenbergPage(nextPage) {
-  const cacheKey = `gutenberg_${nextPage}_${gutenbergLang}_${gutenbergQuery}`;
-  if (localStorage.getItem(cacheKey)) return; // already cached
-  try {
-    let url = `https://gutendex.com/books/?page=${nextPage}&sort=popular`;
-    if (gutenbergLang) url += `&languages=${gutenbergLang}`;
-    else url += `&languages=fr,en,es,de,it,pt,ru,zh,ar,ja`;
-    if (gutenbergQuery) url += `&search=${encodeURIComponent(gutenbergQuery)}`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-    const data = await res.json();
-    try {
-      localStorage.setItem(cacheKey, JSON.stringify({ data, timestamp: Date.now() }));
-    } catch(e) {
-      Object.keys(localStorage).filter(k => k.startsWith('gutenberg_')).forEach(k => localStorage.removeItem(k));
-    }
-  } catch(e) {} // silent fail — it's just a prefetch
 }
 
 // ===== QUIZ IA =====
