@@ -1772,18 +1772,39 @@ function filterBooks() {
   const q = document.getElementById('search-input').value.toLowerCase();
   let filtered = BOOKS;
 
-  // Filter by active language
+  // Filter by active language using both lang field AND genre
   if (gutenbergLang && gutenbergLang !== 'fr') {
     filtered = filtered.filter(b => {
-      if (gutenbergLang === 'en') return b.lang === 'en' || b.genre?.includes('English') || (!b.lang && !b.genre?.includes('عربية') && !b.genre?.includes('Français') && !b.genre?.includes('Español'));
-      if (gutenbergLang === 'ar') return b.lang === 'ar' || b.genre?.includes('عربية');
-      if (gutenbergLang === 'es') return b.lang === 'es' || b.genre?.includes('Español');
+      const lang = b.lang || '';
+      const genre = b.genre || '';
+      if (gutenbergLang === 'en') {
+        return lang === 'en' || genre.includes('English') || genre.includes('Anglais');
+      }
+      if (gutenbergLang === 'ar') {
+        return lang === 'ar' || genre.includes('عربية') || genre.includes('Arabic');
+      }
+      if (gutenbergLang === 'es') {
+        return lang === 'es' || genre.includes('Español') || genre.includes('Spanish');
+      }
       return true;
+    });
+  } else if (gutenbergLang === 'fr') {
+    filtered = filtered.filter(b => {
+      const lang = b.lang || '';
+      const genre = b.genre || '';
+      return lang === 'fr' || genre.includes('Français') || genre.includes('French') ||
+             genre.includes('Roman') || genre.includes('Policier') || genre.includes('Science-fiction') ||
+             genre.includes('Philosophie') || genre.includes('Poésie') ||
+             (!lang && !genre.includes('English') && !genre.includes('عربية') && !genre.includes('Español'));
     });
   }
 
   if (activeGenre !== 'Tous') filtered = filtered.filter(b => b.genre === activeGenre);
-  if (q) filtered = filtered.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q) || b.genre?.toLowerCase().includes(q));
+  if (q) filtered = filtered.filter(b =>
+    b.title.toLowerCase().includes(q) ||
+    b.author.toLowerCase().includes(q) ||
+    (b.genre || '').toLowerCase().includes(q)
+  );
   renderBooks('library-books', filtered);
 }
 

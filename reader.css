@@ -820,3 +820,80 @@ body {
 .annotation-item[data-color="green"]  .annotation-item-text { background: rgba(74,222,128,0.12); }
 .annotation-item[data-color="pink"]   .annotation-item-text { background: rgba(244,114,182,0.12); }
 .annotation-item[data-color="blue"]   .annotation-item-text { background: rgba(96,165,250,0.12); }
+
+/* ===== ANNOTATION CONTEXT MENU — IMPROVED COLORS ===== */
+.ann-ctx-menu {
+  background: var(--bg2) !important;
+  border: 1px solid rgba(167,139,250,0.5) !important;
+  border-radius: 16px !important;
+  padding: 16px !important;
+  width: 270px !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8) !important;
+}
+
+.ann-ctx-text {
+  font-size: 0.83rem !important;
+  color: var(--text) !important;
+  font-style: italic !important;
+  margin-bottom: 12px !important;
+  line-height: 1.5 !important;
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+  background: var(--bg3) !important;
+  border-left: 3px solid var(--accent) !important;
+  display: block !important;
+}
+
+.ann-ctx-note {
+  color: var(--text) !important;
+  background: rgba(167,139,250,0.18) !important;
+  border-left: 3px solid var(--accent) !important;
+  padding: 10px 12px !important;
+  border-radius: 0 10px 10px 0 !important;
+  margin-bottom: 12px !important;
+}
+
+.ann-ctx-colors {
+  background: var(--bg3) !important;
+  border-radius: 10px !important;
+  padding: 10px !important;
+  justify-content: center !important;
+  gap: 12px !important;
+}
+
+.ann-color-btn {
+  width: 36px !important; height: 36px !important;
+  border: 3px solid rgba(255,255,255,0.25) !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4) !important;
+}
+.ann-color-btn:hover {
+  transform: scale(1.3) !important;
+  border-color: rgba(255,255,255,0.8) !important;
+}
+
+.ann-ctx-edit {
+  background: rgba(167,139,250,0.2) !important;
+  color: var(--accent) !important;
+  border: 1px solid rgba(167,139,250,0.4) !important;
+  font-weight: 700 !important;
+}
+.ann-ctx-edit:hover { background: rgba(167,139,250,0.35) !important; }
+
+.ann-ctx-delete {
+  background: rgba(239,68,68,0.15) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(239,68,68,0.35) !important;
+  font-weight: 700 !important;
+}
+.ann-ctx-delete:hover { background: rgba(239,68,68,0.3) !important; }
+
+/* Panel items with color backgrounds */
+.annotation-item[data-color="yellow"] { border-left: 4px solid #fbbf24 !important; background: rgba(251,191,36,0.06) !important; }
+.annotation-item[data-color="green"]  { border-left: 4px solid #4ade80 !important; background: rgba(74,222,128,0.06) !important; }
+.annotation-item[data-color="pink"]   { border-left: 4px solid #f472b6 !important; background: rgba(244,114,182,0.06) !important; }
+.annotation-item[data-color="blue"]   { border-left: 4px solid #60a5fa !important; background: rgba(96,165,250,0.06) !important; }
+
+.annotation-item[data-color="yellow"] .annotation-item-text { background: rgba(251,191,36,0.15) !important; color: var(--text) !important; border-radius: 8px; padding: 8px 10px; }
+.annotation-item[data-color="green"]  .annotation-item-text { background: rgba(74,222,128,0.15) !important; color: var(--text) !important; border-radius: 8px; padding: 8px 10px; }
+.annotation-item[data-color="pink"]   .annotation-item-text { background: rgba(244,114,182,0.15) !important; color: var(--text) !important; border-radius: 8px; padding: 8px 10px; }
+.annotation-item[data-color="blue"]   .annotation-item-text { background: rgba(96,165,250,0.15) !important; color: var(--text) !important; border-radius: 8px; padding: 8px 10px; }
