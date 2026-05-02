@@ -1993,6 +1993,9 @@ function setLangFilter(code, btn) {
   document.querySelectorAll('.lang-filter-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
 
+  // Clear Gutenberg cache for this language to force fresh results
+  Object.keys(localStorage).filter(k => k.startsWith('gutenberg_')).forEach(k => localStorage.removeItem(k));
+
   // Languages with local books
   const localLangs = { fr: true, en: true, ar: true };
 
@@ -2004,11 +2007,9 @@ function setLangFilter(code, btn) {
   }
 
   if (localLangs[code]) {
-    // Show filtered local books first, then append Gutenberg
     filterBooks();
     fetchGutenbergPage(true);
   } else {
-    // No local books for this language — show loading state, let Gutenberg fill
     document.getElementById('library-books').innerHTML = '<p style="color:var(--text2);grid-column:1/-1;text-align:center;padding:40px"><i class="fas fa-spinner fa-spin"></i> Chargement...</p>';
     document.getElementById('load-more-wrap').style.display = 'none';
     fetchGutenbergPage(true);
