@@ -2115,14 +2115,16 @@ async function fetchGutenbergPage(replace = false) {
     }
     
     renderGutenbergBooks(data.results, replace);
-    // Always show load more button if we have results (Gutenberg has many pages)
     if (loadMoreWrap) {
       const shouldShow = data.next || (data.results && data.results.length >= 32);
       loadMoreWrap.style.display = shouldShow ? 'block' : 'none';
-      console.log('Load more button:', shouldShow ? 'visible' : 'hidden', 'Element exists:', !!loadMoreWrap);
-    } else {
-      console.error('Load more wrap element not found!');
     }
+
+    // Prefetch next page in background so "load more" is instant
+    if (data.next) {
+      setTimeout(() => prefetchNextGutenbergPage(gutenbergPage + 1), 1000);
+    }
+
   } catch(e) {
     console.error('Gutenberg fetch error:', e);
     if (replace) {
@@ -2208,6 +2210,25 @@ async function loadMoreGutenberg() {
   // Always keep load more visible
   const btn = document.getElementById('load-more-wrap');
   if (btn) btn.style.display = 'block';
+}
+
+// Prefetch next page silently into cache
+async function prefetchNextGutenbergPage(nextPage) {
+  const cacheKey = `gutenberg_${nextPage}_${gutenbergLang}_${gutenbergQuery}`;
+  if (localStorage.getItem(cacheKey)) return; // already cached
+  try {
+    let url = `https://gutendex.com/books/?page=${nextPage}&sort=popular`;
+    if (gutenbergLang) url += `&languages=${gutenbergLang}`;
+    else url += `&languages=fr,en,es,de,it,pt,ru,zh,ar,ja`;
+    if (gutenbergQuery) url += `&search=${encodeURIComponent(gutenbergQuery)}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const data = await res.json();
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify({ data, timestamp: Date.now() }));
+    } catch(e) {
+      Object.keys(localStorage).filter(k => k.startsWith('gutenberg_')).forEach(k => localStorage.removeItem(k));
+    }
+  } catch(e) {} // silent fail — it's just a prefetch
 }
 
 // ===== QUIZ IA =====
