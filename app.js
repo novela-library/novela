@@ -1772,7 +1772,6 @@ function filterBooks() {
   const q = document.getElementById('search-input').value.toLowerCase();
   let filtered = BOOKS;
 
-  // Filter by active language
   if (gutenbergLang === 'en') {
     filtered = filtered.filter(b => b.lang === 'en' || (b.genre || '').includes('English'));
   } else if (gutenbergLang === 'ar') {
@@ -1780,13 +1779,15 @@ function filterBooks() {
   } else if (gutenbergLang === 'es') {
     filtered = filtered.filter(b => b.lang === 'es' || (b.genre || '').includes('Español'));
   } else if (gutenbergLang === 'fr') {
+    // French books: explicit lang:'fr' OR no lang field (our local books are mostly FR translations)
+    // Exclude books explicitly marked as other languages
     filtered = filtered.filter(b => {
-      const lang = b.lang || '';
-      const genre = b.genre || '';
-      return lang === 'fr' || genre.includes('Français') || genre.includes('Roman') ||
-             genre.includes('Policier') || genre.includes('Science-fiction') ||
-             genre.includes('Philosophie') || genre.includes('Poésie') ||
-             (!lang && !genre.includes('English') && !genre.includes('عربية') && !genre.includes('Español'));
+      if (b.lang === 'fr') return true;
+      if (b.lang === 'en' || b.lang === 'ar' || b.lang === 'es') return false;
+      if ((b.genre || '').includes('English')) return false;
+      if ((b.genre || '').includes('عربية')) return false;
+      if ((b.genre || '').includes('Español')) return false;
+      return true; // no lang = local FR book
     });
   }
 
