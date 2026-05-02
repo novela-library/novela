@@ -927,4 +927,13 @@ server.listen(PORT, () => {
   console.log(`📚 Site:  http://localhost:${PORT}/`);
   console.log(`🔧 Admin: http://localhost:${PORT}/admin.html`);
   console.log(`\nPress Ctrl+C to stop.\n`);
+
+  // Keep-alive ping every 14 minutes to prevent Render free tier spin-down
+  const RENDER_URL = process.env.RENDER_EXTERNAL_URL || '';
+  if (RENDER_URL) {
+    setInterval(() => {
+      https.get(RENDER_URL + '/api/ai-key', () => {}).on('error', () => {});
+      console.log('[Keep-alive] ping sent');
+    }, 14 * 60 * 1000); // every 14 min
+  }
 });
