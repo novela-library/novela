@@ -1539,47 +1539,89 @@ function showAnnotationMenu(id) {
   const ann = annotations[chapterKey]?.[id];
   if (!ann) return;
 
-  // Remove existing menus
   document.querySelectorAll('.annotation-menu').forEach(m => m.remove());
 
   const colorMap = { yellow: '#fbbf24', green: '#4ade80', pink: '#f472b6', blue: '#60a5fa' };
-  const colorDot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${colorMap[ann.color]||'#fbbf24'};margin-right:6px"></span>`;
+  const bg = colorMap[ann.color] || '#fbbf24';
 
   const menu = document.createElement('div');
   menu.className = 'annotation-menu';
+  menu.style.cssText = 'position:fixed;z-index:10001';
   menu.innerHTML = `
-    <div class="ann-ctx-menu">
-      <div class="ann-ctx-text">${colorDot}"${ann.text.substring(0, 55)}${ann.text.length > 55 ? '...' : ''}"</div>
-      ${ann.note ? `<div class="ann-ctx-note">📝 ${ann.note}</div>` : ''}
-      <div class="ann-ctx-colors">
-        <button onclick="changeHighlightColor('${id}','yellow')" class="ann-color-btn" style="background:#fbbf24" title="Jaune"></button>
-        <button onclick="changeHighlightColor('${id}','green')" class="ann-color-btn" style="background:#4ade80" title="Vert"></button>
-        <button onclick="changeHighlightColor('${id}','pink')" class="ann-color-btn" style="background:#f472b6" title="Rose"></button>
-        <button onclick="changeHighlightColor('${id}','blue')" class="ann-color-btn" style="background:#60a5fa" title="Bleu"></button>
+    <div style="
+      background:#13122a;
+      border:1.5px solid rgba(167,139,250,0.5);
+      border-radius:16px;
+      padding:16px;
+      width:270px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.85);
+    ">
+      <!-- Text preview with color accent -->
+      <div style="
+        background:#1c1b35;
+        border-left:4px solid ${bg};
+        border-radius:0 10px 10px 0;
+        padding:10px 12px;
+        font-size:.83rem;
+        color:#eeeeff;
+        font-style:italic;
+        line-height:1.5;
+        margin-bottom:12px;
+      ">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${bg};margin-right:8px;vertical-align:middle;flex-shrink:0"></span>
+        "${ann.text.substring(0, 60)}${ann.text.length > 60 ? '...' : ''}"
       </div>
-      <div class="ann-ctx-actions">
-        <button onclick="editAnnotationNote('${id}')" class="ann-ctx-btn ann-ctx-edit">✏️ Note</button>
-        <button onclick="deleteAnnotation('${id}')" class="ann-ctx-btn ann-ctx-delete">🗑️ Supprimer</button>
+      ${ann.note ? `
+      <div style="
+        background:rgba(167,139,250,0.15);
+        border-left:3px solid #a78bfa;
+        border-radius:0 10px 10px 0;
+        padding:10px 12px;
+        font-size:.82rem;
+        color:#eeeeff;
+        margin-bottom:12px;
+        line-height:1.5;
+      ">📝 ${ann.note}</div>` : ''}
+      <!-- Color buttons -->
+      <div style="
+        display:flex;gap:12px;justify-content:center;
+        background:#1c1b35;border-radius:10px;padding:12px;
+        margin-bottom:12px;
+      ">
+        <button onclick="changeHighlightColor('${id}','yellow')" style="width:36px;height:36px;border-radius:50%;background:#fbbf24;border:3px solid rgba(255,255,255,0.3);cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,0.4);transition:transform .2s" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'"></button>
+        <button onclick="changeHighlightColor('${id}','green')"  style="width:36px;height:36px;border-radius:50%;background:#4ade80;border:3px solid rgba(255,255,255,0.3);cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,0.4);transition:transform .2s" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'"></button>
+        <button onclick="changeHighlightColor('${id}','pink')"   style="width:36px;height:36px;border-radius:50%;background:#f472b6;border:3px solid rgba(255,255,255,0.3);cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,0.4);transition:transform .2s" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'"></button>
+        <button onclick="changeHighlightColor('${id}','blue')"   style="width:36px;height:36px;border-radius:50%;background:#60a5fa;border:3px solid rgba(255,255,255,0.3);cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,0.4);transition:transform .2s" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'"></button>
+      </div>
+      <!-- Action buttons -->
+      <div style="display:flex;gap:8px">
+        <button onclick="editAnnotationNote('${id}')" style="
+          flex:1;padding:10px;border-radius:10px;border:1.5px solid rgba(167,139,250,0.5);
+          background:rgba(167,139,250,0.15);color:#a78bfa;cursor:pointer;
+          font-size:.85rem;font-weight:700;
+        ">✏️ Note</button>
+        <button onclick="deleteAnnotation('${id}')" style="
+          flex:1;padding:10px;border-radius:10px;border:1.5px solid rgba(248,113,113,0.4);
+          background:rgba(248,113,113,0.15);color:#f87171;cursor:pointer;
+          font-size:.85rem;font-weight:700;
+        ">🗑️ Supprimer</button>
       </div>
     </div>
   `;
 
   document.body.appendChild(menu);
 
-  // Position near the highlight
   const highlight = document.querySelector(`[data-id="${id}"]`);
   if (highlight) {
     const rect = highlight.getBoundingClientRect();
     let top = rect.bottom + 8;
     let left = rect.left;
-    // Keep on screen
-    if (left + 260 > window.innerWidth) left = window.innerWidth - 270;
+    if (left + 280 > window.innerWidth) left = window.innerWidth - 285;
     if (left < 8) left = 8;
-    if (top + 180 > window.innerHeight) top = rect.top - 188;
+    if (top + 220 > window.innerHeight) top = rect.top - 228;
     menu.style.cssText = `position:fixed;top:${top}px;left:${left}px;z-index:10001`;
   }
 
-  // Close on outside click/tap
   setTimeout(() => {
     const close = (e) => {
       if (!menu.contains(e.target)) {
