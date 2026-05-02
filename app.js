@@ -1992,7 +1992,9 @@ function setLangFilter(code, btn) {
   document.querySelectorAll('.lang-filter-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
 
-  // For Arabic — show local Arabic books directly
+  // Languages with local books
+  const localLangs = { fr: true, en: true, ar: true };
+
   if (code === 'ar') {
     const arabicBooks = BOOKS.filter(b => b.lang === 'ar' || (b.genre && b.genre.includes('\u0639\u0631\u0628\u064a\u0629')));
     renderBooks('library-books', arabicBooks);
@@ -2000,9 +2002,16 @@ function setLangFilter(code, btn) {
     return;
   }
 
-  // For other languages — filter local books first, then fetch Gutenberg
-  filterBooks();
-  fetchGutenbergPage(true);
+  if (localLangs[code]) {
+    // Show filtered local books first, then append Gutenberg
+    filterBooks();
+    fetchGutenbergPage(true);
+  } else {
+    // No local books for this language — show loading state, let Gutenberg fill
+    document.getElementById('library-books').innerHTML = '<p style="color:var(--text2);grid-column:1/-1;text-align:center;padding:40px"><i class="fas fa-spinner fa-spin"></i> Chargement...</p>';
+    document.getElementById('load-more-wrap').style.display = 'none';
+    fetchGutenbergPage(true);
+  }
 }
 
 function onSearchInput() {
@@ -2098,7 +2107,7 @@ async function fetchGutenbergPage(replace = false) {
       Object.keys(localStorage).filter(k => k.startsWith('gutenberg_')).forEach(k => localStorage.removeItem(k));
     }
     
-    renderGutenbergBooks(data.results, false); // always append to local books
+    renderGutenbergBooks(data.results, replace); // replace spinner for non-local langs, append for local langs
     if (loadMoreWrap) {
       const shouldShow = data.next || (data.results && data.results.length >= 32);
       loadMoreWrap.style.display = shouldShow ? 'block' : 'none';
