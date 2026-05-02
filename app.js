@@ -2128,26 +2128,19 @@ async function fetchGutenbergPage(replace = false) {
     if (replace) {
       // Fallback to local books if Gutenberg fails
       renderBooks('library-books', BOOKS.slice(0, 20));
-      if (loadMoreWrap) {
-        loadMoreWrap.style.display = 'none';
-      } else {
-        console.error('Load more wrap element not found in error handler!');
-      }
     }
+    // Always show load more even on error — local books have more pages
+    if (loadMoreWrap) loadMoreWrap.style.display = 'block';
   }
   
-  // Hide loading bar
   if (loadingBar) loadingBar.style.display = 'none';
   gutenbergLoading = false;
   
-  // Final check: ensure load more button is visible if we're on page 1
+  // Always show load more button
   setTimeout(() => {
     const btn = document.getElementById('load-more-wrap');
-    if (btn && gutenbergPage === 1) {
-      btn.style.display = 'block';
-      console.log('Force showing load more button on page 1');
-    }
-  }, 500);
+    if (btn) btn.style.display = 'block';
+  }, 300);
 }
 
 function renderGutenbergBooks(books, replace) {
@@ -2212,6 +2205,9 @@ function openGutenbergBook(gutId, title, author, cover, desc) {
 async function loadMoreGutenberg() {
   gutenbergPage++;
   await fetchGutenbergPage(false);
+  // Always keep load more visible
+  const btn = document.getElementById('load-more-wrap');
+  if (btn) btn.style.display = 'block';
 }
 
 // ===== QUIZ IA =====
