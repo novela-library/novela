@@ -1771,8 +1771,19 @@ function renderBooks(container, books) {
 function filterBooks() {
   const q = document.getElementById('search-input').value.toLowerCase();
   let filtered = BOOKS;
+
+  // Filter by active language
+  if (gutenbergLang && gutenbergLang !== 'fr') {
+    filtered = filtered.filter(b => {
+      if (gutenbergLang === 'en') return b.lang === 'en' || b.genre?.includes('English') || (!b.lang && !b.genre?.includes('عربية') && !b.genre?.includes('Français') && !b.genre?.includes('Español'));
+      if (gutenbergLang === 'ar') return b.lang === 'ar' || b.genre?.includes('عربية');
+      if (gutenbergLang === 'es') return b.lang === 'es' || b.genre?.includes('Español');
+      return true;
+    });
+  }
+
   if (activeGenre !== 'Tous') filtered = filtered.filter(b => b.genre === activeGenre);
-  if (q) filtered = filtered.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q) || b.genre.toLowerCase().includes(q));
+  if (q) filtered = filtered.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q) || b.genre?.toLowerCase().includes(q));
   renderBooks('library-books', filtered);
 }
 
@@ -1977,6 +1988,8 @@ function setLangFilter(code, btn) {
     return;
   }
 
+  // For other languages — filter local books first, then fetch Gutenberg
+  filterBooks();
   fetchGutenbergPage(true);
 }
 
