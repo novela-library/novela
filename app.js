@@ -2051,7 +2051,7 @@ async function fetchGutenbergPage(replace = false) {
     if (loadingBar) loadingBar.style.display = 'block';
     if (loadMoreWrap) loadMoreWrap.style.display = 'none';
 
-    // Show local books immediately — don't replace with skeletons
+    // Show local books immediately
     const localBooks = gutenbergLang === 'en'
       ? BOOKS.filter(b => b.lang === 'en' || (b.genre || '').includes('English'))
       : gutenbergLang === 'ar'
@@ -2114,7 +2114,7 @@ async function fetchGutenbergPage(replace = false) {
       Object.keys(localStorage).filter(k => k.startsWith('gutenberg_')).forEach(k => localStorage.removeItem(k));
     }
     
-    renderGutenbergBooks(data.results, replace);
+    renderGutenbergBooks(data.results, false); // always append to local books
     if (loadMoreWrap) {
       const shouldShow = data.next || (data.results && data.results.length >= 32);
       loadMoreWrap.style.display = shouldShow ? 'block' : 'none';
