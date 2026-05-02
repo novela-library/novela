@@ -1769,8 +1769,15 @@ function toggleAnnotationsPanel() {
 }
 
 function renderHighlightsList() {
-  let html = '<div class="annotations-list">';
+  let html = '<div style="display:flex;flex-direction:column;gap:10px">';
   let hasAny = false;
+
+  const colorMap = {
+    yellow: { bg: 'rgba(251,191,36,0.12)',  border: '#fbbf24', textBg: 'rgba(251,191,36,0.18)' },
+    green:  { bg: 'rgba(74,222,128,0.12)',  border: '#4ade80', textBg: 'rgba(74,222,128,0.18)' },
+    pink:   { bg: 'rgba(244,114,182,0.12)', border: '#f472b6', textBg: 'rgba(244,114,182,0.18)' },
+    blue:   { bg: 'rgba(96,165,250,0.12)',  border: '#60a5fa', textBg: 'rgba(96,165,250,0.18)' },
+  };
 
   Object.entries(annotations).forEach(([chKey, chData]) => {
     if (chKey === 'bookmarks' || typeof chData !== 'object') return;
@@ -1779,27 +1786,51 @@ function renderHighlightsList() {
 
     Object.entries(chData).forEach(([id, ann]) => {
       hasAny = true;
-      const colorLabel = { yellow: 'Jaune', green: 'Vert', pink: 'Rose', blue: 'Bleu' }[ann.color] || '';
-      const colorDot = { yellow: '#fbbf24', green: '#4ade80', pink: '#f472b6', blue: '#60a5fa' }[ann.color] || '#fbbf24';
+      const c = colorMap[ann.color] || colorMap.yellow;
 
       html += `
-        <div class="annotation-item" data-color="${ann.color}" onclick="goToAnnotation(${chNum}, '${id}')">
-          <div class="annotation-item-header">
-            <span style="display:flex;align-items:center;gap:6px">
-              <span style="width:10px;height:10px;border-radius:50%;background:${colorDot};display:inline-block;flex-shrink:0"></span>
-              <span>${chTitle}</span>
+        <div onclick="goToAnnotation(${chNum}, '${id}')" style="
+          background:${c.bg};
+          border:1px solid ${c.border}40;
+          border-left:4px solid ${c.border};
+          border-radius:12px;
+          padding:12px 14px;
+          cursor:pointer;
+          transition:all .2s;
+        " onmouseover="this.style.borderColor='${c.border}'" onmouseout="this.style.borderColor='${c.border}40'">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <span style="display:flex;align-items:center;gap:8px;font-size:.82rem;font-weight:700;color:#eeeeff">
+              <span style="width:12px;height:12px;border-radius:50%;background:${c.border};display:inline-block;flex-shrink:0;box-shadow:0 0 6px ${c.border}80"></span>
+              ${chTitle}
             </span>
-            <span style="font-size:.7rem;color:var(--text2)">${new Date(ann.date).toLocaleDateString()}</span>
+            <span style="font-size:.7rem;color:#9b9dbf">${new Date(ann.date).toLocaleDateString()}</span>
           </div>
-          <div class="annotation-item-text">"${ann.text.substring(0, 100)}${ann.text.length > 100 ? '...' : ''}"</div>
-          ${ann.note ? `<div class="annotation-item-note">📝 ${ann.note}</div>` : ''}
+          <div style="
+            background:${c.textBg};
+            border-radius:8px;
+            padding:8px 10px;
+            font-size:.88rem;
+            color:#eeeeff;
+            font-style:italic;
+            line-height:1.5;
+            margin-bottom:${ann.note ? '8px' : '0'};
+          ">"${ann.text.substring(0, 100)}${ann.text.length > 100 ? '...' : ''}"</div>
+          ${ann.note ? `<div style="
+            background:rgba(167,139,250,0.15);
+            border-left:3px solid #a78bfa;
+            border-radius:0 8px 8px 0;
+            padding:8px 10px;
+            font-size:.82rem;
+            color:#eeeeff;
+            line-height:1.4;
+          ">📝 ${ann.note}</div>` : ''}
         </div>
       `;
     });
   });
 
   html += '</div>';
-  return hasAny ? html : '<p style="text-align:center;color:var(--text2);padding:40px 20px;font-size:.9rem">Aucun surlignage pour l\'instant.<br><br>Active le mode ✏️ et tape sur une phrase !</p>';
+  return hasAny ? html : '<p style="text-align:center;color:#9b9dbf;padding:40px 20px;font-size:.9rem">Aucun surlignage pour l\'instant.<br><br>Active le mode ✏️ et tape sur une phrase !</p>';
 }
 
 function renderBookmarksList() {
