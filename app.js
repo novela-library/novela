@@ -2048,27 +2048,18 @@ async function fetchGutenbergPage(replace = false) {
   });
 
   if (replace) {
-    // Show loading bar
     if (loadingBar) loadingBar.style.display = 'block';
-    
-    // INSTANT LOAD: Show local books immediately for instant feedback
-    const localBooks = BOOKS.slice(0, 20);
-    renderBooks('library-books', localBooks);
-    
-    // Hide load more button initially
     if (loadMoreWrap) loadMoreWrap.style.display = 'none';
-    
-    // Then fetch Gutenberg in background to replace with more books
-    setTimeout(() => {
-      el.innerHTML = Array(8).fill(0).map(() => `
-        <div class="book-card skeleton-card">
-          <div class="book-cover skeleton-cover"></div>
-          <div class="book-info">
-            <div class="skeleton-line" style="width:80%;height:12px;margin-bottom:8px"></div>
-            <div class="skeleton-line" style="width:55%;height:10px"></div>
-          </div>
-        </div>`).join('');
-    }, 100);
+
+    // Show local books immediately — don't replace with skeletons
+    const localBooks = gutenbergLang === 'en'
+      ? BOOKS.filter(b => b.lang === 'en' || (b.genre || '').includes('English'))
+      : gutenbergLang === 'ar'
+      ? BOOKS.filter(b => b.lang === 'ar' || (b.genre || '').includes('عربية'))
+      : gutenbergLang === 'es'
+      ? BOOKS.filter(b => b.lang === 'es' || (b.genre || '').includes('Español'))
+      : BOOKS.slice(0, 20);
+    renderBooks('library-books', localBooks.length ? localBooks : BOOKS.slice(0, 20));
   }
 
   try {
