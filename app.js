@@ -2014,27 +2014,11 @@ async function fetchGutenbergPage(replace = false) {
   });
 
   if (replace) {
-    // Show loading bar
     if (loadingBar) loadingBar.style.display = 'block';
-    
-    // INSTANT LOAD: Show local books immediately for instant feedback
+    // Show local books immediately — never replace with skeletons
     const localBooks = BOOKS.slice(0, 20);
     renderBooks('library-books', localBooks);
-    
-    // Hide load more button initially
     if (loadMoreWrap) loadMoreWrap.style.display = 'none';
-    
-    // Then fetch Gutenberg in background to replace with more books
-    setTimeout(() => {
-      el.innerHTML = Array(8).fill(0).map(() => `
-        <div class="book-card skeleton-card">
-          <div class="book-cover skeleton-cover"></div>
-          <div class="book-info">
-            <div class="skeleton-line" style="width:80%;height:12px;margin-bottom:8px"></div>
-            <div class="skeleton-line" style="width:55%;height:10px"></div>
-          </div>
-        </div>`).join('');
-    }, 100);
   }
 
   try {
@@ -2089,40 +2073,24 @@ async function fetchGutenbergPage(replace = false) {
       Object.keys(localStorage).filter(k => k.startsWith('gutenberg_')).forEach(k => localStorage.removeItem(k));
     }
     
-    renderGutenbergBooks(data.results, replace);
-    // Always show load more button if we have results (Gutenberg has many pages)
+    renderGutenbergBooks(data.results, false); // always append to local books
     if (loadMoreWrap) {
       const shouldShow = data.next || (data.results && data.results.length >= 32);
       loadMoreWrap.style.display = shouldShow ? 'block' : 'none';
-      console.log('Load more button:', shouldShow ? 'visible' : 'hidden', 'Element exists:', !!loadMoreWrap);
-    } else {
-      console.error('Load more wrap element not found!');
     }
   } catch(e) {
     console.error('Gutenberg fetch error:', e);
-    if (replace) {
-      // Fallback to local books if Gutenberg fails
-      renderBooks('library-books', BOOKS.slice(0, 20));
-      if (loadMoreWrap) {
-        loadMoreWrap.style.display = 'none';
-      } else {
-        console.error('Load more wrap element not found in error handler!');
-      }
-    }
+    // Local books already showing — just show load more button
+    if (loadMoreWrap) loadMoreWrap.style.display = 'block';
   }
   
-  // Hide loading bar
   if (loadingBar) loadingBar.style.display = 'none';
   gutenbergLoading = false;
-  
-  // Final check: ensure load more button is visible if we're on page 1
+  // Always show load more
   setTimeout(() => {
     const btn = document.getElementById('load-more-wrap');
-    if (btn && gutenbergPage === 1) {
-      btn.style.display = 'block';
-      console.log('Force showing load more button on page 1');
-    }
-  }, 500);
+    if (btn) btn.style.display = 'block';
+  }, 200);
 }
 
 function renderGutenbergBooks(books, replace) {
