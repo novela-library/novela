@@ -1873,7 +1873,10 @@ async function openBook(id) {
       <button class="btn-secondary" style="flex:1;font-size:.82rem" onclick="toggleReadLater(${b.id});closeBookModal()">
         <i class="fas fa-clock" style="color:var(--teal)"></i> ${isReadLater(b.id) ? 'Retirer' : 'À lire'}
       </button>
-    </div>`;
+    </div>
+    <a href="https://www.amazon.fr/s?k=${encodeURIComponent(b.title+' '+b.author)}&tag=novelalibrary-21" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:10px;background:rgba(255,153,0,0.12);border:1px solid rgba(255,153,0,0.3);border-radius:10px;color:#ff9900;font-size:.85rem;font-weight:600;text-decoration:none;transition:all .2s" onmouseover="this.style.background='rgba(255,153,0,0.2)'" onmouseout="this.style.background='rgba(255,153,0,0.12)'">
+      <i class="fab fa-amazon"></i> Acheter la version papier sur Amazon
+    </a>`;
   document.getElementById('book-modal').classList.add('open');
 
   // Load cover async in background if not available
@@ -2184,7 +2187,10 @@ function openGutenbergBook(gutId, title, author, cover, desc) {
       <button class="btn-secondary" style="flex:1;font-size:.82rem" id="gut-later-btn" onclick="toggleReadLaterKey('${bookKey}','${title.replace(/'/g,"\\'")}','${author.replace(/'/g,"\\'")}','${cover}',this)">
         <i class="fas fa-clock" style="color:var(--teal)"></i> ${isLater ? 'Retirer' : 'À lire'}
       </button>
-    </div>`;
+    </div>
+    <a href="https://www.amazon.fr/s?k=${encodeURIComponent(title+' '+author)}&tag=novelalibrary-21" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:10px;background:rgba(255,153,0,0.12);border:1px solid rgba(255,153,0,0.3);border-radius:10px;color:#ff9900;font-size:.85rem;font-weight:600;text-decoration:none;transition:all .2s" onmouseover="this.style.background='rgba(255,153,0,0.2)'" onmouseout="this.style.background='rgba(255,153,0,0.12)'">
+      <i class="fab fa-amazon"></i> Acheter la version papier sur Amazon
+    </a>`;
   document.getElementById('book-modal').classList.add('open');
 }
 
