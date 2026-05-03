@@ -470,6 +470,7 @@ const server = http.createServer(async (req, res) => {
     '/logo.png': 'logo.png',
     '/book_texts.js': 'book_texts.js',
     '/books-content.js': 'books-content.js',
+    '/ads.txt': 'ads.txt',
     '/manifest.json': 'manifest.json',
     '/sw.js': 'sw.js',
     '/download.html': 'download.html',
